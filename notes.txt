@@ -1,0 +1,7 @@
+create project > asp.net web application (.net framework)
+
+- kad bude trebalo controller -> add new controller > web api a ne mvc
+
+- kad pokrenes aplikaciju (mozda treba set as startup prvo) vidis URL
+- tek kad se vrti aplikacija Postman daje rezultate
+- onaj default route gdje pise api/controller ne znaci da je api https://localhost:44373/, nego doslovno ovako https://localhost:44373/api/controller xD

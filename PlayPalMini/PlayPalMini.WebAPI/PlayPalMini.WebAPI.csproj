@@ -8,7 +8,7 @@
     <ProductVersion>
     </ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{905687F5-533B-42C7-B60C-8DEAB8E5B6F4}</ProjectGuid>
+    <ProjectGuid>{D3EF9D02-AAE2-4E23-8A58-E99A26D1EF84}</ProjectGuid>
     <ProjectTypeGuids>{349c5851-65df-11da-9384-00065b846f21};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -156,6 +156,7 @@
     <Compile Include="Areas\HelpPage\SampleGeneration\TextSample.cs" />
     <Compile Include="Areas\HelpPage\XmlDocumentationProvider.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\UserController.cs" />
     <Compile Include="Controllers\ValuesController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
@@ -231,6 +232,7 @@
   <ItemGroup>
     <Folder Include="App_Data\" />
     <Folder Include="Models\" />
+    <Folder Include="Views\User\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Scripts\bootstrap.min.js.map" />
@@ -303,6 +305,24 @@
     <Content Include="Scripts\jquery-3.4.1.slim.min.map" />
     <Content Include="Scripts\jquery-3.4.1.min.map" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PlayPalMini.Model.Common\PlayPalMini.Model.Common.csproj">
+      <Project>{5f59796a-c1e0-48b8-bc0c-83eac85bab4d}</Project>
+      <Name>PlayPalMini.Model.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\PlayPalMini.Model\PlayPalMini.Model.csproj">
+      <Project>{1bc6d2d4-b612-471b-8c5e-a95151331709}</Project>
+      <Name>PlayPalMini.Model</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\PlayPalMini.Service.Common\PlayPalMini.Service.Common.csproj">
+      <Project>{eb52ff67-3fbe-4f8f-bbf2-b580c24e7ce4}</Project>
+      <Name>PlayPalMini.Service.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\PlayPalMini.Service\PlayPalMini.Service.csproj">
+      <Project>{d6b270dc-b8fb-411f-9308-6c8daf07dbcd}</Project>
+      <Name>PlayPalMini.Service</Name>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
@@ -319,7 +339,7 @@
         <WebProjectProperties>
           <UseIIS>True</UseIIS>
           <AutoAssignPort>True</AutoAssignPort>
-          <DevelopmentServerPort>52042</DevelopmentServerPort>
+          <DevelopmentServerPort>53306</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
           <IISUrl>https://localhost:44373/</IISUrl>
           <NTLMAuthentication>False</NTLMAuthentication>
