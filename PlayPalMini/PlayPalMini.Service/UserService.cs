@@ -1,5 +1,6 @@
 ﻿using PlayPalMini.Model;
 using PlayPalMini.Repository;
+using PlayPalMini.Repository.Common;
 using PlayPalMini.Service.Common;
 using System;
 using System.Collections.Generic;
@@ -11,11 +12,40 @@ namespace PlayPalMini.Service
 {
     public class UserService : IUserService
     {
+        // dependency injection
+        public IUserRepository Repository { get; set; }
+        public UserService(IUserRepository repository)
+        {
+            Repository = repository;
+        }
         public async Task<List<RegisteredUser>> GetAllAsync()
         {
-            UserRepository repository = new UserRepository(); 
-            List<RegisteredUser> list = await repository.GetAllAsync();
+            (List<RegisteredUser> list, string message) = await Repository.GetAllAsync();
+            if (list == null)
+            {
+                throw new Exception(message);
+            }
             return list;
+        }
+        //----------------
+        public async Task<RegisteredUser> GetOneByIdAsync(Guid id)
+        {
+            (RegisteredUser user, string message) = await Repository.GetOneByIdAsync(id);
+            if (user == null)
+            {
+                throw new Exception(message);
+            }
+            return user;
+        }
+        //----------------
+        public async Task<bool> CreateUserAsync(RegisteredUser user)
+        {
+            (bool result, string message) = await Repository.CreateUserAsync(user);
+            if (!result) 
+            {
+                throw new Exception(message);
+            }
+            return result;
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using PlayPalMini.Model;
+using PlayPalMini.Repository.Common;
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
@@ -8,11 +9,12 @@ using System.Threading.Tasks;
 
 namespace PlayPalMini.Repository
 {
-    public class UserRepository
+    public class UserRepository : IUserRepository
     {
         public static string connectionString = "Data Source=VREMENSKISTROJ;Initial Catalog=PlayPalMini;Integrated Security=True";
 
-        public async Task<List<RegisteredUser>> GetAllAsync()
+        //-------------- GET ALL USERS ---------------------------
+        public async Task<(List<RegisteredUser>, string)> GetAllAsync()
         {
             try
             {
@@ -35,28 +37,107 @@ namespace PlayPalMini.Repository
                             user.Username = reader.GetString(1);
                             user.Pass = reader.GetString(2);
                             user.UserRole = reader.GetString(3);
-                            user.UpdatedBy = reader.GetString(4);
-                            user.DateUpdated = reader.GetDateTime(5);
-                            user.CreatedBy = reader.GetString(6);
-                            user.DateCreated = reader.GetDateTime(7);
+                            user.UpdatedBy = reader.GetString(5);
+                            user.DateUpdated = reader.GetDateTime(7);
+                            user.CreatedBy = reader.GetString(4);
+                            user.DateCreated = reader.GetDateTime(6); //brojevi su redoslijed stupca u tablici
 
                             list.Add(user);
                         }
                         reader.Close();
-                        return list;
+                        return (list, "Success");
                     }
                     else
                     {
-                        return null;
+                        return (null, "No rows found.");
                     }
                 }
             }
             catch (Exception)
             {
-                return (null);
+                return (null, "Exception");
             }
+        }
+        //-------------- GET ONE USER BY ID ---------------------------
+        public async Task<(RegisteredUser, string)> GetOneByIdAsync(Guid id)
+        {
+            try
+            {
+                SqlConnection theConnection = new SqlConnection(connectionString);
+                using (theConnection)
+                {
+                    SqlCommand cmd = new SqlCommand("SELECT * FROM RegisteredUser WHERE Id = @id", theConnection);
+                    cmd.Parameters.AddWithValue("@id", id); //dodao id
+                    theConnection.Open();
 
-            return null;
+                    SqlDataReader reader = await cmd.ExecuteReaderAsync();
+
+                    if (reader.HasRows)
+                    {
+                        RegisteredUser user = new RegisteredUser(); // mora biti tu da ga onaj return dole vidi
+
+                        while (reader.Read())
+                        {
+                            //RegisteredUser user = new RegisteredUser();
+                            user.Id = reader.GetGuid(0);
+                            user.Username = reader.GetString(1);
+                            user.Pass = reader.GetString(2);
+                            user.UserRole = reader.GetString(3);
+                            user.UpdatedBy = reader.GetString(5);
+                            user.DateUpdated = reader.GetDateTime(7);
+                            user.CreatedBy = reader.GetString(4);
+                            user.DateCreated = reader.GetDateTime(6); //brojevi su redoslijed stupca u tablici
+                        }
+                        reader.Close();
+                        return (user, "Success");
+                    }
+                    else
+                    {
+                        return (null, "No rows found.");
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                return (null, "Exception");
+            }
+        }
+        //------------------ CREATE USER ---------------------
+        public async Task<(bool, string)> CreateUserAsync(RegisteredUser user)
+        {
+            try
+            {
+                SqlConnection theConnection = new SqlConnection(connectionString);
+                using (theConnection)
+                {
+                    SqlCommand cmd = new SqlCommand("INSERT INTO RegisteredUser VALUES (@id, @username, @password, @role, @createdby, @updatedby, @timecreated, @timeupdated);", theConnection);
+
+                    cmd.Parameters.AddWithValue("@id", user.Id = Guid.NewGuid());
+                    cmd.Parameters.AddWithValue("@username", user.Username);
+                    cmd.Parameters.AddWithValue("@password", user.Pass);
+                    cmd.Parameters.AddWithValue("@role", user.UserRole = "User");
+                    cmd.Parameters.AddWithValue("@createdby", user.CreatedBy = "Postman");
+                    cmd.Parameters.AddWithValue("@updatedby", user.UpdatedBy = "Postman");
+                    cmd.Parameters.AddWithValue("@timecreated", user.DateCreated = DateTime.Now);
+                    cmd.Parameters.AddWithValue("@timeupdated", user.DateUpdated = DateTime.Now);
+                    // u Postmanu ostaviti samo username i password jer sam ovdje sve ostalo zadao
+
+                    theConnection.Open();
+
+                    if (cmd.ExecuteNonQuery() > 0)
+                    {
+                        return (true, "Added this new user!");
+                    }
+                    else
+                    {
+                        return (false, "Failed to create new user.");
+                    }
+                }                       
+            }
+            catch (Exception)
+            {
+                return (false, "Exception");
+            }
         }
     }
 }

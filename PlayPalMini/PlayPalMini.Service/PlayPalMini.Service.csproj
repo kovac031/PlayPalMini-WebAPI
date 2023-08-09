@@ -45,9 +45,17 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\PlayPalMini.Model.Common\PlayPalMini.Model.Common.csproj">
+      <Project>{5f59796a-c1e0-48b8-bc0c-83eac85bab4d}</Project>
+      <Name>PlayPalMini.Model.Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\PlayPalMini.Model\PlayPalMini.Model.csproj">
       <Project>{1BC6D2D4-B612-471B-8C5E-A95151331709}</Project>
       <Name>PlayPalMini.Model</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\PlayPalMini.Repository.Common\PlayPalMini.Repository.Common.csproj">
+      <Project>{dca8eeea-e120-4c68-925d-ccbea04dd82e}</Project>
+      <Name>PlayPalMini.Repository.Common</Name>
     </ProjectReference>
     <ProjectReference Include="..\PlayPalMini.Repository\PlayPalMini.Repository.csproj">
       <Project>{87AF763D-A170-40BD-BDC9-4E029C8E705C}</Project>

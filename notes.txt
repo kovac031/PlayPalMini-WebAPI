@@ -5,3 +5,53 @@ create project > asp.net web application (.net framework)
 - kad pokrenes aplikaciju (mozda treba set as startup prvo) vidis URL
 - tek kad se vrti aplikacija Postman daje rezultate
 - onaj default route gdje pise api/controller ne znaci da je api https://localhost:44373/, nego doslovno ovako https://localhost:44373/api/controller xD
+
+- posto ima puno return null u repositoriju, da znam koji je null, dodam poruku i promijenim metodu ovako:
+
+Repository:
+        public async Task<(List<RegisteredUser>, string)> GetAllAsync()
+Interface:
+        Task<(List<RegisteredUser> list, string message)> GetAllAsync();
+
+
+Service i Controller metode se ne moraju mijenjati, vidi u kodu, samo u servisu await linija, dost zgodno, i interface tek nakon implementacije DI
+
+- i sad ne radi jer koristim dependency injection a nisam instalirao autofac
+	- instaliram autofac nuget package i onaj za webapi2
+	- https://autofac.readthedocs.io/en/latest/integration/webapi.html
+	- pravim DependencyInjectionConfig file u AppStart u kontroleru:
+...
+public static void ConfigureContainer()
+        {
+            var builder = new ContainerBuilder();
+            var config = GlobalConfiguration.Configuration;
+
+            // Register your Web API controllers.
+            builder.RegisterApiControllers(Assembly.GetExecutingAssembly());
+
+            builder.RegisterType<UserService>().As<IUserService>();
+            builder.RegisterType<UserRepository>().As<IUserRepository>();
+
+            var container = builder.Build();
+            config.DependencyResolver = new AutofacWebApiDependencyResolver(container);
+        }
+...
+	
+	- dodajem liniju na kraj global.asax: DependencyInjectionConfig.ConfigureContainer();
+
+- errori zbog nepoklapanja verzija, editirao webconfig, dodao sljedece:
+
+...
+		<dependentAssembly>
+			<assemblyIdentity name="Autofac" publicKeyToken="17863af14b0044da" culture="neutral" />
+			<bindingRedirect oldVersion="0.0.0.0-7.0.1.0" newVersion="7.0.1.0" />
+		</dependentAssembly>
+		<dependentAssembly>
+			<assemblyIdentity name="System.Web.Http" publicKeyToken="31bf3856ad364e35" culture="neutral" />
+			<bindingRedirect oldVersion="0.0.0.0-5.2.9.0" newVersion="5.2.9.0" />
+		</dependentAssembly>
+...
+- verzija za webhttp se nadje u webapi folderu, prosiris references, nadjes ga, kliknes daoznaci, i na dnu pod properties pise verzija
+
+
+
