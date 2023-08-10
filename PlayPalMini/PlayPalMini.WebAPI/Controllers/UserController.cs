@@ -74,5 +74,21 @@ namespace PlayPalMini.WebAPI.Controllers
                 return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, $"Error for CreateUserAsync: {x.Message}");
             }
         }
+        //---------------------------EDIT USER-----------------------------
+        [HttpPut]
+        [Route("user/edit")]
+        public async Task<HttpResponseMessage> EditUserAsync(RegisteredUser user, Guid id) // parametri za upit na Service
+        {
+            try
+            {
+                RegisteredUser editedUser = await Service.EditUserAsync(user, id);
+                return Request.CreateResponse(HttpStatusCode.OK, editedUser);
+
+            }
+            catch (Exception x)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, $"Error for EditUserAsync: {x.Message}");
+            }
+        }
     }
 }

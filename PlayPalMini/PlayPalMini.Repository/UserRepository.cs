@@ -139,5 +139,54 @@ namespace PlayPalMini.Repository
                 return (false, "Exception");
             }
         }
+        //------------------ EDIT USER ---------------------
+        public async Task<(RegisteredUser, string)> EditUserAsync(RegisteredUser user, Guid id)
+        {
+            try
+            {
+                SqlConnection theConnection = new SqlConnection(connectionString);
+                using (theConnection)
+                {
+                    SqlCommand cmdGet = new SqlCommand("SELECT * FROM RegisteredUser WHERE Id = @id", theConnection);
+                    cmdGet.Parameters.AddWithValue("@id", id);
+                    theConnection.Open();
+
+                    SqlDataReader reader = await cmdGet.ExecuteReaderAsync();
+
+                    if (reader.HasRows)
+                    {
+                        SqlCommand cmd = new SqlCommand("UPDATE RegisteredUser SET Username = @username, Pass = @password, UserRole = @role, UpdatedBy = @updatedby, DateUpdated = @timeupdated WHERE Id = @id;", theConnection);
+
+                        cmd.Parameters.AddWithValue("@id", id);
+                        cmd.Parameters.AddWithValue("@username", user.Username);
+                        cmd.Parameters.AddWithValue("@password", user.Pass);
+                        cmd.Parameters.AddWithValue("@role", user.UserRole);
+                        //cmd.Parameters.AddWithValue("@createdby", user.CreatedBy = "Postman");
+                        cmd.Parameters.AddWithValue("@updatedby", user.UpdatedBy = "EditUserAsync");
+                        //cmd.Parameters.AddWithValue("@timecreated", user.DateCreated = DateTime.Now);
+                        cmd.Parameters.AddWithValue("@timeupdated", user.DateUpdated = DateTime.Now);
+                        // u Postmanu ostaviti samo sto se treba rucno mijenjati
+                        reader.Close();
+
+                        if (cmd.ExecuteNonQuery() > 0)
+                        {
+                            return (user, "User info edited!");
+                        }
+                        else
+                        {
+                            return (null, "Failed to edit user.");
+                        }
+                    }
+                    else
+                    {
+                        return (null, "No rows.");
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                return (null, "Exception");
+            }
+        }
     }
 }

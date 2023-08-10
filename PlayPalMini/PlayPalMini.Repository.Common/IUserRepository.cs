@@ -13,5 +13,6 @@ namespace PlayPalMini.Repository.Common
 
         Task<(RegisteredUser user, string message)> GetOneByIdAsync(Guid id);
         Task<(bool result, string message)> CreateUserAsync(RegisteredUser user);
+        Task<(RegisteredUser, string)> EditUserAsync(RegisteredUser user, Guid id);
     }
 }
