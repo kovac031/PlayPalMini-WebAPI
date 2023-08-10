@@ -12,6 +12,6 @@ namespace PlayPalMini.Service.Common
         Task<List<RegisteredUser>> GetAllAsync();
         Task<RegisteredUser> GetOneByIdAsync(Guid id);
         Task<bool> CreateUserAsync(RegisteredUser user);
-        Task<RegisteredUser> EditUserAsync(RegisteredUser user, Guid id);
+        Task<(RegisteredUser, string)> EditUserAsync(RegisteredUser user, Guid id);
     }
 }

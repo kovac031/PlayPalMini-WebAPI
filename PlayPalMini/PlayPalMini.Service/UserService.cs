@@ -48,14 +48,14 @@ namespace PlayPalMini.Service
             return result;
         }
         //-----------------
-        public async Task<RegisteredUser> EditUserAsync(RegisteredUser user, Guid id)
+        public async Task<(RegisteredUser, string)> EditUserAsync(RegisteredUser user, Guid id)
         {
             (RegisteredUser userService, string message) = await Repository.EditUserAsync(user, id);
             if (userService == null)
             {
                 throw new Exception(message);
             }
-            return userService;
+            return (userService, message);
         }
     }
 }

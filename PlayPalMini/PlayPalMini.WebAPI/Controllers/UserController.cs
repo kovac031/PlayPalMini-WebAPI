@@ -76,13 +76,13 @@ namespace PlayPalMini.WebAPI.Controllers
         }
         //---------------------------EDIT USER-----------------------------
         [HttpPut]
-        [Route("user/edit")]
+        [Route("user/edit/{id}")]
         public async Task<HttpResponseMessage> EditUserAsync(RegisteredUser user, Guid id) // parametri za upit na Service
         {
             try
             {
-                RegisteredUser editedUser = await Service.EditUserAsync(user, id);
-                return Request.CreateResponse(HttpStatusCode.OK, editedUser);
+                (RegisteredUser editedUser, string message) = await Service.EditUserAsync(user, id);
+                return Request.CreateResponse(HttpStatusCode.OK, new { Message = message, User = editedUser });
 
             }
             catch (Exception x)

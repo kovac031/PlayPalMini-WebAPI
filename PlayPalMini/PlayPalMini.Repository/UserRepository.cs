@@ -161,16 +161,16 @@ namespace PlayPalMini.Repository
                         cmd.Parameters.AddWithValue("@username", user.Username);
                         cmd.Parameters.AddWithValue("@password", user.Pass);
                         cmd.Parameters.AddWithValue("@role", user.UserRole);
-                        //cmd.Parameters.AddWithValue("@createdby", user.CreatedBy = "Postman");
+                        //cmd.Parameters.AddWithValue("@createdby", user.CreatedBy);
                         cmd.Parameters.AddWithValue("@updatedby", user.UpdatedBy = "EditUserAsync");
-                        //cmd.Parameters.AddWithValue("@timecreated", user.DateCreated = DateTime.Now);
+                        //cmd.Parameters.AddWithValue("@timecreated", user.DateCreated);
                         cmd.Parameters.AddWithValue("@timeupdated", user.DateUpdated = DateTime.Now);
                         // u Postmanu ostaviti samo sto se treba rucno mijenjati
                         reader.Close();
 
                         if (cmd.ExecuteNonQuery() > 0)
                         {
-                            return (user, "User info edited!");
+                            return (user, "User info edited! (ignore null values, it's all good)");
                         }
                         else
                         {
