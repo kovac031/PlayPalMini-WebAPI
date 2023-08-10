@@ -9,12 +9,16 @@ create project > asp.net web application (.net framework)
 - posto ima puno return null u repositoriju, da znam koji je null, dodam poruku i promijenim metodu ovako:
 
 Repository:
-        public async Task<(List<RegisteredUser>, string)> GetAllAsync()
-Interface:
-        Task<(List<RegisteredUser> list, string message)> GetAllAsync();
+	- prije - public async Task<List<RegisteredUser>> GetAllAsync()
+	- novo - public async Task<(List<RegisteredUser>, string)> GetAllAsync()
+IRepository:
+		- Task<(List<RegisteredUser>, string)> GetAllAsync();
+Service:
+	public async Task<(List<RegisteredUser>, string)> GetAllAsync()
+        {
+            (List<RegisteredUser> list, string message) = await Repository.GetAllAsync();
 
-
-Service i Controller metode se ne moraju mijenjati, vidi u kodu, samo u servisu await linija, dost zgodno, i interface tek nakon implementacije DI
+- i tako dalje, vidi u kodu, to u zagradi se zove Tuple
 
 - i sad ne radi jer koristim dependency injection a nisam instalirao autofac
 	- instaliram autofac nuget package i onaj za webapi2

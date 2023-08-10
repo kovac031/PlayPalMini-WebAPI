@@ -90,5 +90,28 @@ namespace PlayPalMini.WebAPI.Controllers
                 return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, $"Error for EditUserAsync: {x.Message}");
             }
         }
+        //---------------------------DELETE USER-----------------------------
+        [HttpDelete]
+        [Route("user/delete/{id}")]
+        public async Task<HttpResponseMessage> DeleteUserAsync(Guid id)
+        {
+            try
+            {
+                (bool result, string message) = await Service.DeleteUserAsync(id);
+
+                if (result)
+                {
+                    return Request.CreateResponse(HttpStatusCode.OK, message);
+                }
+                else
+                {
+                    return Request.CreateErrorResponse(HttpStatusCode.BadRequest, message);
+                }
+            }
+            catch (Exception x)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, $"Error for DeleteUserAsync: {x.Message}");
+            }
+        }
     }
 }

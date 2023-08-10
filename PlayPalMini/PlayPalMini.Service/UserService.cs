@@ -28,24 +28,24 @@ namespace PlayPalMini.Service
             return (list, message);
         }
         //----------------
-        public async Task<RegisteredUser> GetOneByIdAsync(Guid id)
+        public async Task<(RegisteredUser, string)> GetOneByIdAsync(Guid id)
         {
             (RegisteredUser user, string message) = await Repository.GetOneByIdAsync(id);
             if (user == null)
             {
                 throw new Exception(message);
             }
-            return user;
+            return (user, message);
         }
         //----------------
-        public async Task<bool> CreateUserAsync(RegisteredUser user)
+        public async Task<(bool, string)> CreateUserAsync(RegisteredUser user)
         {
             (bool result, string message) = await Repository.CreateUserAsync(user);
             if (!result) 
             {
                 throw new Exception(message);
             }
-            return result;
+            return (result, message);
         }
         //-----------------
         public async Task<(RegisteredUser, string)> EditUserAsync(RegisteredUser user, Guid id)
@@ -56,6 +56,16 @@ namespace PlayPalMini.Service
                 throw new Exception(message);
             }
             return (userService, message);
+        }
+        //-----------------
+        public async Task<(bool, string)> DeleteUserAsync(Guid id)
+        {
+            (bool result, string message) = await Repository.DeleteUserAsync(id);
+            if (!result)
+            {
+                throw new Exception(message);
+            }
+            return (result, message);
         }
     }
 }

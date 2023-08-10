@@ -155,6 +155,8 @@ namespace PlayPalMini.Repository
 
                     if (reader.HasRows)
                     {
+                        reader.Close(); // ne treba nam reader vise
+
                         SqlCommand cmd = new SqlCommand("UPDATE RegisteredUser SET Username = @username, Pass = @password, UserRole = @role, UpdatedBy = @updatedby, DateUpdated = @timeupdated WHERE Id = @id;", theConnection);
 
                         cmd.Parameters.AddWithValue("@id", id);
@@ -166,26 +168,67 @@ namespace PlayPalMini.Repository
                         //cmd.Parameters.AddWithValue("@timecreated", user.DateCreated);
                         cmd.Parameters.AddWithValue("@timeupdated", user.DateUpdated = DateTime.Now);
                         // u Postmanu ostaviti samo sto se treba rucno mijenjati
-                        reader.Close();
-
+                        
                         if (cmd.ExecuteNonQuery() > 0)
                         {
                             return (user, "User info edited! (ignore null values, it's all good)");
                         }
                         else
                         {
-                            return (null, "Failed to edit user.");
+                            return (null, "Did not edit user.");
                         }
                     }
                     else
                     {
-                        return (null, "No rows.");
+                        return (null, "No rows found.");
                     }
                 }
             }
             catch (Exception)
             {
                 return (null, "Exception");
+            }
+        }
+        //-------------- DELETE USER BY ID ---------------------------
+        public async Task<(bool, string)> DeleteUserAsync(Guid id)
+        {
+            try
+            {
+                SqlConnection theConnection = new SqlConnection(connectionString);
+                using (theConnection)
+                {
+                    SqlCommand cmdRead = new SqlCommand("SELECT * FROM RegisteredUser WHERE Id = @id", theConnection);
+                    cmdRead.Parameters.AddWithValue("@id", id);
+                    theConnection.Open();
+
+                    SqlDataReader reader = await cmdRead.ExecuteReaderAsync();
+
+                    if (reader.HasRows)
+                    {
+                        reader.Close(); // reader odradio svoje
+
+                        SqlCommand cmd = new SqlCommand("DELETE FROM RegisteredUser WHERE Id = @id;", theConnection);
+                        cmd.Parameters.AddWithValue("@id", id);
+
+                        int affectedRows = await cmd.ExecuteNonQueryAsync(); // Ovo zapravo obrise, ono iznad ne
+                        if (affectedRows > 0)
+                        {
+                            return (true, "The user has been deleted!");
+                        }
+                        else
+                        {
+                            return (false, "Failed to delete the user.");
+                        }                        
+                    }
+                    else
+                    {
+                        return (false, "No rows found.");
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                return (false, "Exception");
             }
         }
     }
