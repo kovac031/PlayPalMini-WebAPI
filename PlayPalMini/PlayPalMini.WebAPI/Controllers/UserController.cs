@@ -28,8 +28,8 @@ namespace PlayPalMini.WebAPI.Controllers
         {
             try
             {
-                List<RegisteredUser> list = await Service.GetAllAsync();
-                return Request.CreateResponse(HttpStatusCode.OK, list);
+                (List<RegisteredUser> list, string message) = await Service.GetAllAsync();
+                return Request.CreateResponse(HttpStatusCode.OK, new { Message = message, List = list });
             }
             catch (Exception x)
             {
@@ -43,8 +43,8 @@ namespace PlayPalMini.WebAPI.Controllers
         {
             try
             {
-                RegisteredUser user = await Service.GetOneByIdAsync(id);
-                return Request.CreateResponse(HttpStatusCode.OK, user);
+                (RegisteredUser user, string message) = await Service.GetOneByIdAsync(id);
+                return Request.CreateResponse(HttpStatusCode.OK, new { Message = message, User = user });
             }
             catch (Exception x)
             {
@@ -58,15 +58,15 @@ namespace PlayPalMini.WebAPI.Controllers
         {
             try
             {
-                bool result = await Service.CreateUserAsync(user);
-                //return Request.CreateResponse(HttpStatusCode.OK, user);
+                (bool result, string message) = await Service.CreateUserAsync(user);
+
                 if (result)
                 {
-                    return Request.CreateResponse(HttpStatusCode.Created, "User created successfully.");
+                    return Request.CreateResponse(HttpStatusCode.Created, message);
                 }
                 else
                 {
-                    return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Failed to create user.");
+                    return Request.CreateErrorResponse(HttpStatusCode.BadRequest, message);
                 }
             }
             catch (Exception x)

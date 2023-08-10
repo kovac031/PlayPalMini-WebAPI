@@ -10,7 +10,6 @@ namespace PlayPalMini.Repository.Common
     public interface IUserRepository
     {
         Task<(List<RegisteredUser>, string)> GetAllAsync();
-
         Task<(RegisteredUser, string)> GetOneByIdAsync(Guid id);
         Task<(bool, string)> CreateUserAsync(RegisteredUser user);
         Task<(RegisteredUser, string)> EditUserAsync(RegisteredUser user, Guid id);

@@ -18,14 +18,14 @@ namespace PlayPalMini.Service
         {
             Repository = repository;
         }
-        public async Task<List<RegisteredUser>> GetAllAsync()
+        public async Task<(List<RegisteredUser>, string)> GetAllAsync()
         {
             (List<RegisteredUser> list, string message) = await Repository.GetAllAsync();
             if (list == null)
             {
                 throw new Exception(message);
             }
-            return list;
+            return (list, message);
         }
         //----------------
         public async Task<RegisteredUser> GetOneByIdAsync(Guid id)
