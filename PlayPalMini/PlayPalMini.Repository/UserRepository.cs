@@ -234,7 +234,7 @@ namespace PlayPalMini.Repository
             }
         }
         //-------------- GET ALL USERS WITH PAGING, SORTING, FILTERING ---------------------------
-        public async Task<(List<RegisteredUser>, string)> GetAllWithParamsAsync(SearchParam search)
+        public async Task<(List<RegisteredUser>, string)> GetAllWithParamsAsync(SearchParam search, SortParam sort)
         {
             try
             {
@@ -248,6 +248,7 @@ namespace PlayPalMini.Repository
                     {
                         sb.Append("SELECT * FROM RegisteredUser WHERE 1=1"); // potrebno da mozemo dalje samo dodati AND
 
+                        //------------ FILTERING -------------------
                         // pretraga po username
                         if (!string.IsNullOrWhiteSpace(search.Username))
                         {
@@ -306,7 +307,21 @@ namespace PlayPalMini.Repository
                             sb.Append(" AND DateUpdated <= @updatedbefore"); // samo kreirani prije nekog datuma
                             cmd.Parameters.AddWithValue("@updatedbefore", search.UpdatedBefore);
                         }
-                        //----------------
+                        //---------------- SORTING -----------------
+                        if (sort.OrderByWhat != null && sort.SortDirection != null) // nema one @nesto kao iznad jer SQL drugacije tumaci za ovo, ovo je kao sigurnosni propust al ajd
+                        {
+                            sb.Append($" ORDER BY {sort.OrderByWhat} {sort.SortDirection}"); // npr ORDER BY Username ASC/DESC                            
+                        }
+                        else if (sort.OrderByWhat != null) // za ako mu nisam zadao ASC/DESC
+                        {
+                            sb.Append($" ORDER BY {sort.OrderByWhat} ASC");
+                        }
+                        else if (sort.SortDirection != null) // ako mu nisam zadao kolumnu za sorting ali jesam ASC/DESC
+                        {
+                            sb.Append($" ORDER BY UserRole {sort.SortDirection}");
+                        }
+                        //---------------- PAGING ----------------------
+
 
                     }
                     else

@@ -62,5 +62,6 @@ public static void ConfigureContainer()
 	- ne zaboraviti [FromUri] u kontroleru
 	- u Postmanu je Key onaj npr @role (dakle role je key) a ne UserRole, iako moze pisati i Role, nije case sensitive
 	- cini se da i za key ni value nije case sensitive
+	- sorting drukcije malo jer se SQL buni, za sorting u Postmanu case sensitive
 
 

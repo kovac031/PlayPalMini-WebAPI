@@ -656,3 +656,121 @@ namespace SchoolMS.Repository
     }
 }
 
+
+
+------------------turpijino 
+
+public async Task<List<ExpenseDTO>> GetAllAsync(Paging paging, Sorting sorting, Filtering filtering)
+        {
+
+            SqlConnection connection = new SqlConnection(connectionString);
+            StringBuilder sb = new StringBuilder();
+            List<ExpenseDTO> expenses = new List<ExpenseDTO>();
+
+            // create list with filtering conditions
+            List<string> filteringQuery = new List<string>();
+
+            // if no parameters, create default objects
+            if (paging == null) paging = new Paging();
+            if (sorting == null) sorting = new Sorting();
+            //if (filtering == null) filtering = new Filtering();
+
+
+            //---------------------------------------------------------------------------
+            // UBACI VARIJABLE KAO COMMAND PARAMETRE !!!
+            //---------------------------------------------------------------------------
+
+
+            if (filtering != null)
+            {
+                if (filtering.PersonId != default)
+                {
+                    //string personId = await FindIdByName("Person", "PersonId", filtering.PersonId.ToString());
+                    filteringQuery.Add($"PersonId = '{filtering.PersonId}'");
+                }
+                if (filtering.CategoryId != default)
+                {
+                    //string categoryId = await FindIdByName("Category", "CategoryId", filtering.CategoryId.ToString());
+                    filteringQuery.Add($"CategoryId = '{filtering.CategoryId}'");
+                }
+
+                if (filtering.DateFrom != null)
+                {
+                    filteringQuery.Add($"DATE >= '{filtering.DateFrom}'");
+                }
+
+                if (filtering.DateTo != null)
+                {
+                    filteringQuery.Add($"DATE <= '{filtering.DateTo}'");
+                }
+
+                if (filtering.CostFrom != null)
+                {
+                    filteringQuery.Add($"COST >= '{filtering.CostFrom}'");
+                }
+
+                if (filtering.CostTo != null)
+                {
+                    filteringQuery.Add($"COST <= '{filtering.CostTo}'");
+                }
+            };
+
+            // set sorting order
+            string sortingOrder = "ASC";
+            if (sorting.SortOrderAsc == false) sortingOrder = "DESC";
+
+            // create query string
+            sb.Append("SELECT Expense.Id, ");
+            sb.Append("PersonId, ");
+            sb.Append("Person.Username AS 'PersonUsername', ");
+            sb.Append("Person.Password AS 'PersonPassword', ");
+            sb.AppendLine("Person.Email AS 'PersonEmail', ");
+            sb.Append("Expense.CategoryId, ");
+            sb.Append("Category.Name AS 'CategoryName', ");
+            sb.Append("Expense.Name, ");
+            sb.Append("Expense.Date, ");
+            sb.Append("Expense.Cost, ");
+            sb.Append("Expense.Description ");
+            sb.AppendLine("FROM EXPENSE ");
+
+            sb.AppendLine("INNER JOIN Person ON Expense.PersonId = Person.Id");
+            sb.AppendLine("INNER JOIN Category ON Expense.CategoryId = Category.Id");
+
+            // filtering has parameters? add to query
+            if (filteringQuery.Any()) sb.AppendLine("WHERE " + string.Join(" AND ", filteringQuery.ToArray()));
+
+            sb.AppendLine($"ORDER BY [{sorting.OrderBy}] {sortingOrder}");
+            sb.AppendLine("OFFSET @offset ROWS");
+            sb.AppendLine("FETCH NEXT @pagesize ROWS ONLY");
+            sb.AppendLine(";");
+
+            SqlCommand command = new SqlCommand(sb.ToString(), connection);
+            command.Parameters.AddWithValue("@offset", (paging.PageNumber - 1) * paging.PageSize);
+            command.Parameters.AddWithValue("@pagesize", paging.PageSize);
+            using (connection)
+            {
+                try
+                {
+                    command.Connection.Open();
+                    SqlDataReader reader = await command.ExecuteReaderAsync();
+                    if (!reader.HasRows)
+                    {
+                        command.Connection.Close();
+                        return null;
+                    }
+                    while (reader.Read())
+                    {
+                        expenses.Add(PopulateExpenseWithReaderData(reader));
+                    }
+                    reader.Close();
+                    command.Connection.Close();
+                    return expenses;
+
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Error: {ex.Message}");
+                    return null;
+                }
+            }
+        }

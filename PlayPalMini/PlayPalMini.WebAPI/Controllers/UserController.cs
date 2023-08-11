@@ -117,11 +117,11 @@ namespace PlayPalMini.WebAPI.Controllers
         //--------------------GET ALL WITH FILTERING, PAGING, SORTING-----------------------------
         [HttpGet]
         [Route("user/params/")]
-        public async Task<HttpResponseMessage> GetAllWithParamsAsync([FromUri]SearchParam search) // ovo [FromUri] je bitno, tako zna da ce traziti parametre u URL
+        public async Task<HttpResponseMessage> GetAllWithParamsAsync([FromUri]SearchParam search, [FromUri]SortParam sort) // ovo [FromUri] je bitno, tako zna da ce traziti parametre u URL
         {
             try
             {
-                (List<RegisteredUser> list, string message) = await Service.GetAllWithParamsAsync(search);
+                (List<RegisteredUser> list, string message) = await Service.GetAllWithParamsAsync(search, sort);
                 return Request.CreateResponse(HttpStatusCode.OK, new { Message = message, List = list });
             }
             catch (Exception x)
