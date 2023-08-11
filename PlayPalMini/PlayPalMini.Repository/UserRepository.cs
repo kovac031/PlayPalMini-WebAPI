@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -234,7 +235,7 @@ namespace PlayPalMini.Repository
             }
         }
         //-------------- GET ALL USERS WITH PAGING, SORTING, FILTERING ---------------------------
-        public async Task<(List<RegisteredUser>, string)> GetAllWithParamsAsync(SearchParam search, SortParam sort)
+        public async Task<(List<RegisteredUser>, string)> GetAllWithParamsAsync(SearchParam search, SortParam sort, PageParam page)
         {
             try
             {
@@ -307,6 +308,7 @@ namespace PlayPalMini.Repository
                             sb.Append(" AND DateUpdated <= @updatedbefore"); // samo kreirani prije nekog datuma
                             cmd.Parameters.AddWithValue("@updatedbefore", search.UpdatedBefore);
                         }
+
                         //---------------- SORTING -----------------
                         if (sort.OrderByWhat != null && sort.SortDirection != null) // nema one @nesto kao iznad jer SQL drugacije tumaci za ovo, ovo je kao sigurnosni propust al ajd
                         {
@@ -320,13 +322,35 @@ namespace PlayPalMini.Repository
                         {
                             sb.Append($" ORDER BY UserRole {sort.SortDirection}");
                         }
+
                         //---------------- PAGING ----------------------
-
-
+                        if (sort.OrderByWhat == null && sort.SortDirection == null) // OFFSET ne radi bez ORDER BY, tako da mu ga moramo zadati ako ne sortiram
+                        {
+                            sb.Append($" ORDER BY UserName ASC");                        
+                        }
+                        if (page.PageNumber != null && page.EntriesPerPage != null)
+                        {
+                            sb.Append(" OFFSET @Offset ROWS FETCH NEXT @EntriesPerPage ROWS ONLY;");
+                            int? pageOffset = (page.PageNumber - 1) * page.EntriesPerPage;
+                            cmd.Parameters.AddWithValue("@Offset", pageOffset);
+                            cmd.Parameters.AddWithValue("@EntriesPerPage", page.EntriesPerPage);
+                        }
+                        else if (page.PageNumber != null) // zadana stranica ali ne broj rezultata po stranici
+                        {
+                            sb.Append(" OFFSET @Offset ROWS FETCH NEXT 5 ROWS ONLY;"); // default ako mu nismo zadali, ručno podesiti i u SQL i u formuli
+                            int? pageOffset = (page.PageNumber - 1) * 5;
+                            cmd.Parameters.AddWithValue("@Offset", pageOffset);
+                        }
+                        else if (page.EntriesPerPage != null) // nije zadana stranica ali je broj rezultata
+                        {
+                            sb.Append(" OFFSET 0 ROWS FETCH NEXT @EntriesPerPage ROWS ONLY;");
+                            cmd.Parameters.AddWithValue("@EntriesPerPage", page.EntriesPerPage);
+                        }
+                        //-----------------------------------------------------------
                     }
                     else
                     {
-                        sb.Append("SELECT * FROM RegisteredUser");
+                        sb.Append("SELECT * FROM RegisteredUser"); // default
                     };
                     cmd.Connection = theConnection;
                     cmd.CommandText = sb.ToString(); // zada kompletiranu SQL komandu

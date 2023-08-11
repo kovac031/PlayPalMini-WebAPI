@@ -69,9 +69,9 @@ namespace PlayPalMini.Service
             return (result, message);
         }
         //------------------
-        public async Task<(List<RegisteredUser>, string)> GetAllWithParamsAsync(SearchParam search, SortParam sort)
+        public async Task<(List<RegisteredUser>, string)> GetAllWithParamsAsync(SearchParam search, SortParam sort, PageParam page)
         {
-            (List<RegisteredUser> list, string message) = await Repository.GetAllWithParamsAsync(search, sort);
+            (List<RegisteredUser> list, string message) = await Repository.GetAllWithParamsAsync(search, sort, page);
             if (list == null)
             {
                 throw new Exception(message);
