@@ -335,6 +335,10 @@
     <Content Include="Scripts\jquery-3.4.1.min.map" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\PlayPalMini.Common\PlayPalMini.Common.csproj">
+      <Project>{7633A133-8852-4D20-A45E-3CBF674B51FB}</Project>
+      <Name>PlayPalMini.Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\PlayPalMini.Model.Common\PlayPalMini.Model.Common.csproj">
       <Project>{5f59796a-c1e0-48b8-bc0c-83eac85bab4d}</Project>
       <Name>PlayPalMini.Model.Common</Name>

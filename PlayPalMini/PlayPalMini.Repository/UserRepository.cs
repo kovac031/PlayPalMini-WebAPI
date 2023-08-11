@@ -1,8 +1,10 @@
-﻿using PlayPalMini.Model;
+﻿using PlayPalMini.Common;
+using PlayPalMini.Model;
 using PlayPalMini.Repository.Common;
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -229,6 +231,126 @@ namespace PlayPalMini.Repository
             catch (Exception)
             {
                 return (false, "Exception");
+            }
+        }
+        //-------------- GET ALL USERS WITH PAGING, SORTING, FILTERING ---------------------------
+        public async Task<(List<RegisteredUser>, string)> GetAllWithParamsAsync(SearchParam search)
+        {
+            try
+            {
+                SqlConnection theConnection = new SqlConnection(connectionString);
+                using (theConnection)
+                {
+                    StringBuilder sb = new StringBuilder(); // slazemo SQL string dio po dio
+                    SqlCommand cmd = new SqlCommand();
+
+                    if (search != null) // prvo provjerava jel filtriramo sta, pa tek onda sortiramo i idemo po stranicama
+                    {
+                        sb.Append("SELECT * FROM RegisteredUser WHERE 1=1"); // potrebno da mozemo dalje samo dodati AND
+
+                        // pretraga po username
+                        if (!string.IsNullOrWhiteSpace(search.Username))
+                        {
+                            sb.Append(" AND Username LIKE @username");
+                            cmd.Parameters.AddWithValue("@username", search.Username);
+                        }
+                        // pretraga po roli (prikazi samo neku rolu)
+                        if (!string.IsNullOrWhiteSpace(search.Role))
+                        {
+                            sb.Append(" AND UserRole LIKE @role");
+                            cmd.Parameters.AddWithValue("@role", search.Role);
+                        }
+                        // pretraga po createdby
+                        if (!string.IsNullOrWhiteSpace(search.CreatedBy))
+                        {
+                            sb.Append(" AND CreatedBy LIKE @CreatedBy");
+                            cmd.Parameters.AddWithValue("@CreatedBy", search.CreatedBy);
+                        }
+                        // pretraga po updatedby
+                        if (!string.IsNullOrWhiteSpace(search.UpdatedBy))
+                        {
+                            sb.Append(" AND UpdatedBy LIKE @UpdatedBy");
+                            cmd.Parameters.AddWithValue("@UpdatedBy", search.UpdatedBy);
+                        }
+                        // pretraga po vremenu kreiranja
+                        if (search.CreatedAfter != null && search.CreatedBefore != null) // izmedju dva datuma
+                        {
+                            sb.Append(" AND DateCreated >= @createdafter AND DateCreated <= @createdbefore");
+                            cmd.Parameters.AddWithValue("@createdafter", search.CreatedAfter);
+                            cmd.Parameters.AddWithValue("@createdbefore", search.CreatedBefore);
+                        }
+                        else if (search.CreatedAfter != null)
+                        {
+                            sb.Append(" AND DateCreated >= @createdafter"); // samo kreirani nakon nekog datuma
+                            cmd.Parameters.AddWithValue("@createdafter", search.CreatedAfter);
+                        }
+                        else if (search.CreatedBefore != null)
+                        {
+                            sb.Append(" AND DateCreated <= @createdbefore"); // sammo kreirani prije nekog datuma
+                            cmd.Parameters.AddWithValue("@createdbefore", search.CreatedBefore);
+                        }
+                        // pretraga po vremenu updejtanja
+                        if (search.UpdatedAfter != null && search.UpdatedBefore != null) 
+                        {
+                            sb.Append(" AND DateUpdated >= @updatedafter AND DateUpdated <= @updatedbefore");
+                            cmd.Parameters.AddWithValue("@updatedafter", search.UpdatedAfter);
+                            cmd.Parameters.AddWithValue("@updatedbefore", search.UpdatedBefore);
+                        }
+                        else if (search.UpdatedAfter != null)
+                        {
+                            sb.Append(" AND DateUpdated >= @updatedafter"); // samo kreirani nakon nekog datuma
+                            cmd.Parameters.AddWithValue("@updatedafter", search.UpdatedAfter);
+                        }
+                        else if (search.UpdatedBefore != null)
+                        {
+                            sb.Append(" AND DateUpdated <= @updatedbefore"); // samo kreirani prije nekog datuma
+                            cmd.Parameters.AddWithValue("@updatedbefore", search.UpdatedBefore);
+                        }
+                        //----------------
+
+                    }
+                    else
+                    {
+                        sb.Append("SELECT * FROM RegisteredUser");
+                    };
+                    cmd.Connection = theConnection;
+                    cmd.CommandText = sb.ToString(); // zada kompletiranu SQL komandu
+
+                    //----- čitanje liste s readerom ------
+                    theConnection.Open();
+                    SqlDataReader reader = await cmd.ExecuteReaderAsync();
+
+                    List<RegisteredUser> list = new List<RegisteredUser>();
+
+                    if (reader.HasRows)
+                    {
+                        while (reader.Read())
+                        {
+                            RegisteredUser user = new RegisteredUser();
+
+                            user.Id = reader.GetGuid(0);
+                            user.Username = reader.GetString(1);
+                            user.Pass = reader.GetString(2);
+                            user.UserRole = reader.GetString(3);
+                            user.CreatedBy = reader.GetString(4);
+                            user.UpdatedBy = reader.GetString(5);
+                            user.DateCreated = reader.GetDateTime(6);
+                            user.DateUpdated = reader.GetDateTime(7); // redoslijed zamjenio
+
+                            list.Add(user);
+                        }
+                        reader.Close();
+                        return (list, "Success");
+                    }
+                    else
+                    {
+                        return (null, "No rows found.");
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                return (null, "Exception");
             }
         }
     }

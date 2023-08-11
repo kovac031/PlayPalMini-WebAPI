@@ -45,6 +45,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\PlayPalMini.Common\PlayPalMini.Common.csproj">
+      <Project>{7633a133-8852-4d20-a45e-3cbf674b51fb}</Project>
+      <Name>PlayPalMini.Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\PlayPalMini.Model\PlayPalMini.Model.csproj">
       <Project>{1bc6d2d4-b612-471b-8c5e-a95151331709}</Project>
       <Name>PlayPalMini.Model</Name>

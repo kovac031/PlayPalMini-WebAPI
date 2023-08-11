@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{EB52FF67-3FBE-4F8F-BBF2-B580C24E7CE4}</ProjectGuid>
+    <ProjectGuid>{7633A133-8852-4D20-A45E-3CBF674B51FB}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>PlayPalMini.Service.Common</RootNamespace>
-    <AssemblyName>PlayPalMini.Service.Common</AssemblyName>
+    <RootNamespace>PlayPalMini.Common</RootNamespace>
+    <AssemblyName>PlayPalMini.Common</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -41,18 +41,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IUserService.cs" />
+    <Compile Include="SearchParam.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\PlayPalMini.Common\PlayPalMini.Common.csproj">
-      <Project>{7633A133-8852-4D20-A45E-3CBF674B51FB}</Project>
-      <Name>PlayPalMini.Common</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\PlayPalMini.Model\PlayPalMini.Model.csproj">
-      <Project>{1BC6D2D4-B612-471B-8C5E-A95151331709}</Project>
-      <Name>PlayPalMini.Model</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

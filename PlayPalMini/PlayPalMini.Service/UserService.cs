@@ -1,4 +1,5 @@
-﻿using PlayPalMini.Model;
+﻿using PlayPalMini.Common;
+using PlayPalMini.Model;
 using PlayPalMini.Repository;
 using PlayPalMini.Repository.Common;
 using PlayPalMini.Service.Common;
@@ -66,6 +67,16 @@ namespace PlayPalMini.Service
                 throw new Exception(message);
             }
             return (result, message);
+        }
+        //------------------
+        public async Task<(List<RegisteredUser>, string)> GetAllWithParamsAsync(SearchParam search)
+        {
+            (List<RegisteredUser> list, string message) = await Repository.GetAllWithParamsAsync(search);
+            if (list == null)
+            {
+                throw new Exception(message);
+            }
+            return (list, message);
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using PlayPalMini.Model;
+﻿using PlayPalMini.Common;
+using PlayPalMini.Model;
 using PlayPalMini.Service;
 using PlayPalMini.Service.Common;
 using System;
@@ -111,6 +112,21 @@ namespace PlayPalMini.WebAPI.Controllers
             catch (Exception x)
             {
                 return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, $"Error for DeleteUserAsync: {x.Message}");
+            }
+        }
+        //--------------------GET ALL WITH FILTERING, PAGING, SORTING-----------------------------
+        [HttpGet]
+        [Route("user/params/")]
+        public async Task<HttpResponseMessage> GetAllWithParamsAsync([FromUri]SearchParam search) // ovo [FromUri] je bitno, tako zna da ce traziti parametre u URL
+        {
+            try
+            {
+                (List<RegisteredUser> list, string message) = await Service.GetAllWithParamsAsync(search);
+                return Request.CreateResponse(HttpStatusCode.OK, new { Message = message, List = list });
+            }
+            catch (Exception x)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, $"Error for GetAllWithParamsAsync: {x.Message}");
             }
         }
     }
