@@ -16,5 +16,9 @@ namespace PlayPalMini.Common
         public string CreatedAfter { get; set; }
         public string UpdatedBefore { get; set; }
         public string UpdatedAfter { get; set; }
+        public string Title { get; set; }
+        public string Description { get; set; }
+        public string Comment { get; set; }
+        public int Rating { get; set; } // mozda bude trebao drugi tip podatka
     }
 }
