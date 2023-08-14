@@ -243,7 +243,7 @@ namespace PlayPalMini.Repository
                         if (!string.IsNullOrWhiteSpace(search.Title))
                         {
                             sb.Append(" AND Title LIKE @title");
-                            cmd.Parameters.AddWithValue("@title", "%" + search.Title + "%");
+                            cmd.Parameters.AddWithValue("@title", search.Title);
                         }
                         if (!string.IsNullOrWhiteSpace(search.Description))
                         {
