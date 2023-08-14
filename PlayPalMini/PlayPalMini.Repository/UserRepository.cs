@@ -320,13 +320,13 @@ namespace PlayPalMini.Repository
                         }
                         else if (sort.SortDirection != null) // ako mu nisam zadao kolumnu za sorting ali jesam ASC/DESC
                         {
-                            sb.Append($" ORDER BY UserRole {sort.SortDirection}");
+                            sb.Append($" ORDER BY DateCreated {sort.SortDirection}");
                         }
 
                         //---------------- PAGING ----------------------
                         if (sort.OrderByWhat == null && sort.SortDirection == null) // OFFSET ne radi bez ORDER BY, tako da mu ga moramo zadati ako ne sortiram
                         {
-                            sb.Append($" ORDER BY UserName ASC");                        
+                            sb.Append($" ORDER BY DateCreated DESC");                        
                         }
                         if (page.PageNumber != null && page.EntriesPerPage != null)
                         {

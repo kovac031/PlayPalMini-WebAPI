@@ -26,6 +26,10 @@ namespace PlayPalMini.WebAPI.App_Start
             builder.RegisterType<UserService>().As<IUserService>();
             builder.RegisterType<UserRepository>().As<IUserRepository>();
 
+            builder.RegisterType<GameService>().As<IGameService>();
+            builder.RegisterType<GameRepository>().As<IGameRepository>();
+
+
             var container = builder.Build();
             config.DependencyResolver = new AutofacWebApiDependencyResolver(container);
         }
