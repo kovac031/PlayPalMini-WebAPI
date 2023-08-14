@@ -23,7 +23,13 @@ namespace PlayPalMini.Repository
                 SqlConnection theConnection = new SqlConnection(connectionString);
                 using (theConnection)
                 {
-                    SqlCommand cmd = new SqlCommand("SELECT * FROM BoardGame", theConnection);
+                    //SqlCommand cmd = new SqlCommand("SELECT * FROM BoardGame", theConnection); // prije nego sam dodao AverageRating
+
+                    string sqlQuery = @"SELECT game.Id, game.Title, CAST(game.Description AS NVARCHAR(MAX)) AS Description, game.CreatedBy, game.UpdatedBy, game.DateCreated, game.DateUpdated, ROUND(AVG(CAST(review.Rating AS FLOAT)),2) AS AverageRating 
+                                    FROM BoardGame game LEFT JOIN Review review ON game.Id = review.BoardGameId
+                                    GROUP BY game.Id, game.Title, CAST(game.Description AS NVARCHAR(MAX)), game.CreatedBy, game.UpdatedBy, game.DateCreated, game.DateUpdated";
+
+                    SqlCommand cmd = new SqlCommand(sqlQuery, theConnection); // dodao za AverageRating
                     theConnection.Open();
 
                     SqlDataReader reader = await cmd.ExecuteReaderAsync();
@@ -42,6 +48,7 @@ namespace PlayPalMini.Repository
                             game.UpdatedBy = reader.GetString(4);                        
                             game.DateCreated = reader.GetDateTime(5);
                             game.DateUpdated = reader.GetDateTime(6);
+                            game.AverageRating = reader.IsDBNull(7) ? (double?)null : Convert.ToDouble(reader.GetValue(7));
 
                             list.Add(game);
                         }
@@ -67,7 +74,15 @@ namespace PlayPalMini.Repository
                 SqlConnection theConnection = new SqlConnection(connectionString);
                 using (theConnection)
                 {
-                    SqlCommand cmd = new SqlCommand("SELECT * FROM BoardGame WHERE Id = @id", theConnection);
+                    //SqlCommand cmd = new SqlCommand("SELECT * FROM BoardGame WHERE Id = @id", theConnection);
+
+                    string sqlQuery = @"SELECT game.Id, game.Title, CAST(game.Description AS NVARCHAR(MAX)) AS Description, game.CreatedBy, game.UpdatedBy, game.DateCreated, game.DateUpdated, ROUND(AVG(CAST(review.Rating AS FLOAT)),2) AS AverageRating 
+                                    FROM BoardGame game LEFT JOIN Review review ON game.Id = review.BoardGameId
+                                    WHERE game.Id = @id
+                                    GROUP BY game.Id, game.Title, CAST(game.Description AS NVARCHAR(MAX)), game.CreatedBy, game.UpdatedBy, game.DateCreated, game.DateUpdated";
+
+                    SqlCommand cmd = new SqlCommand(sqlQuery, theConnection);
+
                     cmd.Parameters.AddWithValue("@id", id); 
                     theConnection.Open();
 
@@ -85,7 +100,9 @@ namespace PlayPalMini.Repository
                             game.CreatedBy = reader.GetString(3);
                             game.UpdatedBy = reader.GetString(4);
                             game.DateCreated = reader.GetDateTime(5);
-                            game.DateUpdated = reader.GetDateTime(6); 
+                            game.DateUpdated = reader.GetDateTime(6);
+                            game.AverageRating = reader.IsDBNull(7) ? (double?)null : Convert.ToDouble(reader.GetValue(7));
+
                         }
                         reader.Close();
                         return (game, "Success");
@@ -356,6 +373,7 @@ namespace PlayPalMini.Repository
                             game.UpdatedBy = reader.GetString(4);
                             game.DateCreated = reader.GetDateTime(5);
                             game.DateUpdated = reader.GetDateTime(6);
+                            game.AverageRating = reader.IsDBNull(7) ? (double?)null : Convert.ToDouble(reader.GetValue(7));
 
                             list.Add(game);
                         }

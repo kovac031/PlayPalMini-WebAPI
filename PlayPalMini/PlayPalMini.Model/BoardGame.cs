@@ -16,5 +16,6 @@ namespace PlayPalMini.Model
         public string UpdatedBy { get; set; }
         public DateTime DateCreated { get; set; }
         public DateTime DateUpdated { get; set; }
+        public double? AverageRating { get; set; } // dodao naknadno
     }
 }

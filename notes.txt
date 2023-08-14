@@ -65,3 +65,5 @@ public static void ConfigureContainer()
 	- sorting drukcije malo jer se SQL buni, za sorting u Postmanu case sensitive
 
 - kod sortiranja, OrderByWhat se buni kod npr Title za review, jer nije jedna rijec ... GPT4 predlaže CAST({sort.OrderByWhat} AS NVARCHAR(MAX)) ali neću dirati jer realno ni ne treba sortirati prema naslovu reviewa ili opisima igre ili reviewa
+
+- Average Rating za BoardGame malo komplicira stvari, dodao izmjene u GetAll, GetOneById i onaj zadnji sa parametrima
