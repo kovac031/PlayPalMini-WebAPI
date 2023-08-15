@@ -16,5 +16,6 @@ namespace PlayPalMini.Repository.Common
         Task<(RegisteredUser, string)> EditUserAsync(RegisteredUser user, Guid id);
         Task<(bool, string)> DeleteUserAsync(Guid id);
         Task<(List<RegisteredUser>, string)> GetAllWithParamsAsync(SearchParam search, SortParam sort, PageParam page);
+        Task<(RegisteredUser, string)> FindUserAsync(string username, string password);
     }
 }

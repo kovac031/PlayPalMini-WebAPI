@@ -392,5 +392,50 @@ namespace PlayPalMini.Repository
                 return (null, "Exception");
             }
         }
+        //-------------- FIND USER FOR AUTHENTICATION ---------------------------
+        public async Task<(RegisteredUser, string)> FindUserAsync(string username, string password)
+        {
+            try
+            {
+                SqlConnection theConnection = new SqlConnection(connectionString);
+                using (theConnection)
+                {
+                    SqlCommand cmd = new SqlCommand("SELECT * FROM RegisteredUser WHERE Username = @username, Pass = @password", theConnection);
+                    cmd.Parameters.AddWithValue("@username", username);
+                    cmd.Parameters.AddWithValue("@password", password);
+
+                    theConnection.Open();
+
+                    SqlDataReader reader = await cmd.ExecuteReaderAsync();
+
+                    if (reader.HasRows)
+                    {
+                        RegisteredUser user = new RegisteredUser();
+
+                        while (reader.Read())
+                        {
+                            user.Id = reader.GetGuid(0);
+                            user.Username = reader.GetString(1);
+                            user.Pass = reader.GetString(2);
+                            user.UserRole = reader.GetString(3);
+                            user.CreatedBy = reader.GetString(4);
+                            user.UpdatedBy = reader.GetString(5);
+                            user.DateCreated = reader.GetDateTime(6);
+                            user.DateUpdated = reader.GetDateTime(7);
+                        }
+                        reader.Close();
+                        return (user, "Success");
+                    }
+                    else
+                    {
+                        return (null, "No rows found.");
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                return (null, "Exception");
+            }
+        }
     }
 }

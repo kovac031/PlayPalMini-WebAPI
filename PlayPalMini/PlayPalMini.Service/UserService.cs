@@ -78,5 +78,15 @@ namespace PlayPalMini.Service
             }
             return (list, message);
         }
+        //----------------
+        public async Task<(RegisteredUser, string)> FindUserAsync(string username, string password)
+        {
+            (RegisteredUser user, string message) = await Repository.FindUserAsync(username, password);
+            if (user == null)
+            {
+                throw new Exception(message);
+            }
+            return (user, message);
+        }
     }
 }
