@@ -254,63 +254,99 @@ namespace PlayPalMini.Repository
 
                     if (search != null) 
                     {
-                        sb.Append("SELECT * FROM BoardGame WHERE 1=1"); 
+                        sb.Append("SELECT game.Id, game.Title, CAST(game.Description AS NVARCHAR(MAX)) AS Description, game.CreatedBy, game.UpdatedBy, game.DateCreated, game.DateUpdated, ROUND(AVG(CAST(review.Rating AS FLOAT)),2) AS AverageRating");
+                        sb.Append(" FROM BoardGame game LEFT JOIN Review review ON game.Id = review.BoardGameId WHERE 1=1"); 
 
                         //------------ FILTERING -------------------
                         if (!string.IsNullOrWhiteSpace(search.Title))
                         {
-                            sb.Append(" AND Title LIKE @title");
+                            sb.Append(" AND game.Title LIKE @title");
                             cmd.Parameters.AddWithValue("@title", search.Title);
                         }
                         if (!string.IsNullOrWhiteSpace(search.Description))
                         {
-                            sb.Append(" AND Description LIKE @description");
+                            sb.Append(" AND game.Description LIKE @description");
                             cmd.Parameters.AddWithValue("@description", "%" + search.Description + "%");
                         }
                         if (!string.IsNullOrWhiteSpace(search.CreatedBy))
                         {
-                            sb.Append(" AND CreatedBy LIKE @CreatedBy");
+                            sb.Append(" AND game.CreatedBy LIKE @CreatedBy");
                             cmd.Parameters.AddWithValue("@CreatedBy", search.CreatedBy);
                         }
                         if (!string.IsNullOrWhiteSpace(search.UpdatedBy))
                         {
-                            sb.Append(" AND UpdatedBy LIKE @UpdatedBy");
+                            sb.Append(" AND game.UpdatedBy LIKE @UpdatedBy");
                             cmd.Parameters.AddWithValue("@UpdatedBy", search.UpdatedBy);
                         }
                         if (search.CreatedAfter != null && search.CreatedBefore != null) 
                         {
-                            sb.Append(" AND DateCreated >= @createdafter AND DateCreated <= @createdbefore");
+                            sb.Append(" AND game.DateCreated >= @createdafter AND game.DateCreated <= @createdbefore");
                             cmd.Parameters.AddWithValue("@createdafter", search.CreatedAfter);
                             cmd.Parameters.AddWithValue("@createdbefore", search.CreatedBefore);
                         }
                         else if (search.CreatedAfter != null)
                         {
-                            sb.Append(" AND DateCreated >= @createdafter"); 
+                            sb.Append(" AND game.DateCreated >= @createdafter"); 
                             cmd.Parameters.AddWithValue("@createdafter", search.CreatedAfter);
                         }
                         else if (search.CreatedBefore != null)
                         {
-                            sb.Append(" AND DateCreated <= @createdbefore"); 
+                            sb.Append(" AND game.DateCreated <= @createdbefore"); 
                             cmd.Parameters.AddWithValue("@createdbefore", search.CreatedBefore);
                         }
                         if (search.UpdatedAfter != null && search.UpdatedBefore != null)
                         {
-                            sb.Append(" AND DateUpdated >= @updatedafter AND DateUpdated <= @updatedbefore");
+                            sb.Append(" AND game.DateUpdated >= @updatedafter AND game.DateUpdated <= @updatedbefore");
                             cmd.Parameters.AddWithValue("@updatedafter", search.UpdatedAfter);
                             cmd.Parameters.AddWithValue("@updatedbefore", search.UpdatedBefore);
                         }
                         else if (search.UpdatedAfter != null)
                         {
-                            sb.Append(" AND DateUpdated >= @updatedafter"); 
+                            sb.Append(" AND game.DateUpdated >= @updatedafter"); 
                             cmd.Parameters.AddWithValue("@updatedafter", search.UpdatedAfter);
                         }
                         else if (search.UpdatedBefore != null)
                         {
-                            sb.Append(" AND DateUpdated <= @updatedbefore"); 
+                            sb.Append(" AND game.DateUpdated <= @updatedbefore"); 
                             cmd.Parameters.AddWithValue("@updatedbefore", search.UpdatedBefore);
                         }
+                        //if (search.AverageGreaterThan != null && search.AverageLessThan != null)
+                        //{
+                        //    sb.Append(" AND game.AverageRating >= @AverageGreaterThan AND game.AverageRating <= @AverageLessThan");
+                        //    cmd.Parameters.AddWithValue("@AverageGreaterThan", search.AverageGreaterThan);
+                        //    cmd.Parameters.AddWithValue("@AverageLessThan", search.AverageLessThan);
+                        //}
+                        //else if (search.AverageGreaterThan != null)
+                        //{
+                        //    sb.Append(" AND game.AverageRating >= @AverageGreaterThan");
+                        //    cmd.Parameters.AddWithValue("@AverageGreaterThan", search.AverageGreaterThan);
+                        //}
+                        //else if (search.AverageLessThan != null)
+                        //{
+                        //    sb.Append(" AND game.AverageRating <= @AverageLessThan");
+                        //    cmd.Parameters.AddWithValue("@AverageLessThan", search.AverageLessThan);
+                        //}
+                        //-----------------------------------------
+                        sb.Append(@" GROUP BY game.Id, game.Title, CAST(game.Description AS NVARCHAR(MAX)), game.CreatedBy, game.UpdatedBy, game.DateCreated, game.DateUpdated");
 
-                        //---------------- SORTING -----------------
+                        //--------AVERAGE RATING JE GLUP----------- // pošto nije u BoardGame tablici, ne može sa WHERE, mora sa HAVING koji ide nakon GROUP BY
+                        if (search.AverageGreaterThan != null && search.AverageLessThan != null)
+                        {
+                            sb.Append(" HAVING ROUND(AVG(CAST(review.Rating AS FLOAT)),2) >= @AverageGreaterThan AND ROUND(AVG(CAST(review.Rating AS FLOAT)),2) <= @AverageLessThan");
+                            cmd.Parameters.AddWithValue("@AverageGreaterThan", search.AverageGreaterThan);
+                            cmd.Parameters.AddWithValue("@AverageLessThan", search.AverageLessThan);
+                        }
+                        else if (search.AverageGreaterThan != null)
+                        {
+                            sb.Append(" HAVING ROUND(AVG(CAST(review.Rating AS FLOAT)),2) >= @AverageGreaterThan");
+                            cmd.Parameters.AddWithValue("@AverageGreaterThan", search.AverageGreaterThan);
+                        }
+                        else if (search.AverageLessThan != null)
+                        {
+                            sb.Append(" HAVING ROUND(AVG(CAST(review.Rating AS FLOAT)),2) <= @AverageLessThan");
+                            cmd.Parameters.AddWithValue("@AverageLessThan", search.AverageLessThan);
+                        }
+                        //---------------- SORTING ----------------
                         if (sort.OrderByWhat != null && sort.SortDirection != null) 
                         {
                             sb.Append($" ORDER BY {sort.OrderByWhat} {sort.SortDirection}");                             
@@ -321,13 +357,13 @@ namespace PlayPalMini.Repository
                         }
                         else if (sort.SortDirection != null) 
                         {
-                            sb.Append($" ORDER BY DateCreated {sort.SortDirection}");
+                            sb.Append($" ORDER BY game.DateCreated {sort.SortDirection}");
                         }
 
                         //---------------- PAGING ----------------------
                         if (sort.OrderByWhat == null && sort.SortDirection == null) 
                         {
-                            sb.Append($" ORDER BY DateCreated DESC");
+                            sb.Append($" ORDER BY game.DateCreated DESC");
                         }
                         if (page.PageNumber != null && page.EntriesPerPage != null)
                         {
@@ -351,7 +387,8 @@ namespace PlayPalMini.Repository
                     }
                     else
                     {
-                        sb.Append("SELECT * FROM BoardGame"); 
+                        sb.Append("SELECT game.Id, game.Title, CAST(game.Description AS NVARCHAR(MAX)) AS Description, game.CreatedBy, game.UpdatedBy, game.DateCreated, game.DateUpdated, ROUND(AVG(CAST(review.Rating AS FLOAT)),2) AS AverageRating");
+                        sb.Append(" FROM BoardGame game LEFT JOIN Review review ON game.Id = review.BoardGameId GROUP BY game.Id, game.Title, CAST(game.Description AS NVARCHAR(MAX)), game.CreatedBy, game.UpdatedBy, game.DateCreated, game.DateUpdated"); 
                     };
                     cmd.Connection = theConnection;
                     cmd.CommandText = sb.ToString(); 

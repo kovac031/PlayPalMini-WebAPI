@@ -19,6 +19,8 @@ namespace PlayPalMini.Common
         public string Title { get; set; }
         public string Description { get; set; }
         public string Comment { get; set; }
-        public int Rating { get; set; } // mozda bude trebao drugi tip podatka
+        public int Rating { get; set; } // u Review
+        public string AverageGreaterThan { get; set; } // nije ni Rating morao int, jer sve ionako ide u SQL komandu koja dalje tumači tip podatka
+        public string AverageLessThan { get; set;}        
     }
 }
