@@ -310,22 +310,6 @@ namespace PlayPalMini.Repository
                             sb.Append(" AND game.DateUpdated <= @updatedbefore"); 
                             cmd.Parameters.AddWithValue("@updatedbefore", search.UpdatedBefore);
                         }
-                        //if (search.AverageGreaterThan != null && search.AverageLessThan != null)
-                        //{
-                        //    sb.Append(" AND game.AverageRating >= @AverageGreaterThan AND game.AverageRating <= @AverageLessThan");
-                        //    cmd.Parameters.AddWithValue("@AverageGreaterThan", search.AverageGreaterThan);
-                        //    cmd.Parameters.AddWithValue("@AverageLessThan", search.AverageLessThan);
-                        //}
-                        //else if (search.AverageGreaterThan != null)
-                        //{
-                        //    sb.Append(" AND game.AverageRating >= @AverageGreaterThan");
-                        //    cmd.Parameters.AddWithValue("@AverageGreaterThan", search.AverageGreaterThan);
-                        //}
-                        //else if (search.AverageLessThan != null)
-                        //{
-                        //    sb.Append(" AND game.AverageRating <= @AverageLessThan");
-                        //    cmd.Parameters.AddWithValue("@AverageLessThan", search.AverageLessThan);
-                        //}
                         //-----------------------------------------
                         sb.Append(@" GROUP BY game.Id, game.Title, CAST(game.Description AS NVARCHAR(MAX)), game.CreatedBy, game.UpdatedBy, game.DateCreated, game.DateUpdated");
 
