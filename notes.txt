@@ -67,3 +67,13 @@ public static void ConfigureContainer()
 - kod sortiranja, OrderByWhat se buni kod npr Title za review, jer nije jedna rijec ... GPT4 predlaže CAST({sort.OrderByWhat} AS NVARCHAR(MAX)) ali neću dirati jer realno ni ne treba sortirati prema naslovu reviewa ili opisima igre ili reviewa
 
 - Average Rating za BoardGame malo komplicira stvari, dodao izmjene u GetAll, GetOneById i onaj zadnji sa parametrima
+
+...
+
+AUTHENTICATION
+
+- instalirati System.IdentityModel.Tokens.Jwt NuGet package
+- AuthenticationController i FindUser metode u servis i repository
+- unutar WebAPI novi folder Filters i novu klasu JwtAuthenticationAttribute
+- novu klasu AuthenticationFailureResult
+- kao i ranije sa verzijama, morao izmijeniti webconfig za System.Threading.Tasks.Extensions
