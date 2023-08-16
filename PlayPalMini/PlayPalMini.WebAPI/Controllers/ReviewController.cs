@@ -1,6 +1,7 @@
 ﻿using PlayPalMini.Common;
 using PlayPalMini.Model;
 using PlayPalMini.Service.Common;
+using PlayPalMini.WebAPI.Filters;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,6 +20,8 @@ namespace PlayPalMini.WebAPI.Controllers
             Service = service;
         }
         //---------------------------GET ALL-----------------------------
+        [JwtAuthentication]
+        [AuthorizeRole("Administrator")]
         [HttpGet]
         [Route("review/getall/")]
         public async Task<HttpResponseMessage> GetAllAsync()
@@ -34,6 +37,8 @@ namespace PlayPalMini.WebAPI.Controllers
             }
         }
         //---------------------------GET ONE BY ID-----------------------------
+        [JwtAuthentication]
+        [AuthorizeRole("Administrator", "User")]
         [HttpGet]
         [Route("review/getonebyid/{id}")]
         public async Task<HttpResponseMessage> GetOneByIdAsync(Guid id)
@@ -49,6 +54,8 @@ namespace PlayPalMini.WebAPI.Controllers
             }
         }
         //---------------------------CREATE NEW-----------------------------
+        [JwtAuthentication]
+        [AuthorizeRole("User")]
         [HttpPost]
         [Route("review/create")]
         public async Task<HttpResponseMessage> CreateReviewAsync(Review review)
@@ -72,6 +79,8 @@ namespace PlayPalMini.WebAPI.Controllers
             }
         }
         //---------------------------EDIT REVIEW-----------------------------
+        [JwtAuthentication]
+        [AuthorizeRole("Administrator", "User")]
         [HttpPut]
         [Route("review/edit/{id}")]
         public async Task<HttpResponseMessage> EditReviewAsync(Review review, Guid id)
@@ -88,6 +97,8 @@ namespace PlayPalMini.WebAPI.Controllers
             }
         }
         //---------------------------DELETE REVIEW-----------------------------
+        [JwtAuthentication]
+        [AuthorizeRole("Administrator", "User")]
         [HttpDelete]
         [Route("review/delete/{id}")]
         public async Task<HttpResponseMessage> DeleteReviewAsync(Guid id)
@@ -110,7 +121,9 @@ namespace PlayPalMini.WebAPI.Controllers
                 return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, $"Error for DeleteReviewAsync: {x.Message}");
             }
         }
-        //--------------------GET ALL WITH FILTERING, PAGING, SORTING-----------------------------
+        //--------------------GET ALL WITH FILTERING, PAGING, SORTING------------------------
+        [JwtAuthentication]
+        [AuthorizeRole("Administrator", "User")]
         [HttpGet]
         [Route("review/params/")]
         public async Task<HttpResponseMessage> GetAllWithParamsAsync([FromUri] SearchParam search, [FromUri] SortParam sort, [FromUri] PageParam page)

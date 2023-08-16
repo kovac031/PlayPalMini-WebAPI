@@ -45,6 +45,7 @@
     <Compile Include="RegisteredUser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Review.cs" />
+    <Compile Include="RoleIsUserDTOs\BoardGameDTO.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\PlayPalMini.Model.Common\PlayPalMini.Model.Common.csproj">

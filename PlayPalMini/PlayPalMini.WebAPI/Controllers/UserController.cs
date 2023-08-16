@@ -2,6 +2,7 @@
 using PlayPalMini.Model;
 using PlayPalMini.Service;
 using PlayPalMini.Service.Common;
+using PlayPalMini.WebAPI.Filters;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,6 +24,8 @@ namespace PlayPalMini.WebAPI.Controllers
         }
 
         //---------------------------GET ALL-----------------------------
+        [JwtAuthentication]
+        [AuthorizeRole("Administrator")]
         [HttpGet]
         [Route("user/getall/")]
         public async Task<HttpResponseMessage> GetAllAsync()
@@ -38,6 +41,8 @@ namespace PlayPalMini.WebAPI.Controllers
             }
         }
         //---------------------------GET ONE BY ID-----------------------------
+        [JwtAuthentication]
+        [AuthorizeRole("Administrator")]
         [HttpGet]
         [Route("user/getonebyid/{id}")]
         public async Task<HttpResponseMessage> GetOneByIdAsync(Guid id)
@@ -53,6 +58,7 @@ namespace PlayPalMini.WebAPI.Controllers
             }
         }
         //---------------------------CREATE NEW-----------------------------
+        // bez autentikacije jer kao registracija treba biti omogućena kao, ta logika
         [HttpPost]
         [Route("user/create")]
         public async Task<HttpResponseMessage> CreateUserAsync(RegisteredUser user)
@@ -76,6 +82,8 @@ namespace PlayPalMini.WebAPI.Controllers
             }
         }
         //---------------------------EDIT USER-----------------------------
+        [JwtAuthentication]
+        [AuthorizeRole("Administrator", "User")]
         [HttpPut]
         [Route("user/edit/{id}")]
         public async Task<HttpResponseMessage> EditUserAsync(RegisteredUser user, Guid id) // parametri za upit na Service
@@ -92,6 +100,8 @@ namespace PlayPalMini.WebAPI.Controllers
             }
         }
         //---------------------------DELETE USER-----------------------------
+        [JwtAuthentication]
+        [AuthorizeRole("Administrator")]
         [HttpDelete]
         [Route("user/delete/{id}")]
         public async Task<HttpResponseMessage> DeleteUserAsync(Guid id)
@@ -114,7 +124,9 @@ namespace PlayPalMini.WebAPI.Controllers
                 return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, $"Error for DeleteUserAsync: {x.Message}");
             }
         }
-        //--------------------GET ALL WITH FILTERING, PAGING, SORTING-----------------------------
+        //--------------------GET ALL WITH FILTERING, PAGING, SORTING-----------------------
+        [JwtAuthentication]
+        [AuthorizeRole("Administrator", "User")]
         [HttpGet]
         [Route("user/params/")]
         public async Task<HttpResponseMessage> GetAllWithParamsAsync([FromUri]SearchParam search, [FromUri]SortParam sort, [FromUri]PageParam page) // ovo [FromUri] je bitno, tako zna da ce traziti parametre u URL

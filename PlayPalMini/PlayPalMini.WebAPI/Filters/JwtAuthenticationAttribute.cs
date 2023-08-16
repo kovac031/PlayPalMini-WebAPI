@@ -12,6 +12,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using System.Net;
 using System.Web.Http.Results;
+using System.Security.Claims;
 
 namespace PlayPalMini.WebAPI.Filters
 {
@@ -38,15 +39,20 @@ namespace PlayPalMini.WebAPI.Filters
                 return;
             }
             string jwtToken = authorization.Parameter;
-            (bool isValid, string message) = IsValidToken(jwtToken); // ako je poslan, a ako je tu onda jest, provjeri je li validan
+            (bool isValid, string message, JwtSecurityToken validatedJwtToken) = IsValidToken(jwtToken); // ako je poslan, a ako je tu onda jest, provjeri je li validan
             if (!isValid)
             {
-                //context.ErrorResult = new AuthenticationFailureResult(message, request); // error poruka iz IsValidToken
-                ErrorResponse(context, message, request);
+                ErrorResponse(context, message, request); // error poruka iz IsValidToken
+                return;
             }
+            var identity = new ClaimsIdentity(validatedJwtToken.Claims, "Jwt"); //autorizacija
+            context.Principal = new ClaimsPrincipal(identity); //autorizacija
         }
         public bool AllowMultiple => false;
-        private (bool, string) IsValidToken(string token)
+
+        //-----------------------------------------------------------------------------------
+        private (bool, string, JwtSecurityToken) IsValidToken(string token)
+        //private (bool, string) IsValidToken(string token) // prije dodatka autorizacije po rolama
         {
             JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
             byte[] key = Encoding.UTF8.GetBytes("123_ThisIsNotAGoodKeyButWhatever_321"); // mora biti isti kao u kontroleru
@@ -64,21 +70,25 @@ namespace PlayPalMini.WebAPI.Filters
             try
             {
                 tokenHandler.ValidateToken(token, tokenValidationParameters, out SecurityToken validatedToken);
-                return (true, null);
+                JwtSecurityToken jwtToken = validatedToken as JwtSecurityToken;
+
+                return (true, null, jwtToken);
             }
             catch (SecurityTokenValidationException)
             {
-                return (false, "Invalid JWT token, expired?.");
+                return (false, "Invalid JWT token, expired?.", null);
             }
             catch (ArgumentException)
             {
-                return (false, "Invalid JWT format, check if token pasted correctly.");
+                return (false, "Invalid JWT format, check if token pasted correctly.", null);
             }
             catch
             {
-                return (false, "Something went wrong.");
+                return (false, "Something went wrong.", null);
             }
         }
+
+        //--------------------------------------------------------------------------
         private void ErrorResponse(HttpAuthenticationContext context, string errorMessage, HttpRequestMessage request)
         {
             HttpResponseMessage response = new HttpResponseMessage(HttpStatusCode.Unauthorized)

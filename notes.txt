@@ -83,4 +83,35 @@ AUTHENTICATION
 
 - za metode koje zelim ogranicit da zahtjevaju ulogiranog usera stavim [JwtAuthentication] iznad HttpGet i sl
 
-- specificne role sad
+AUTORIZACIJA
+
+- nova klasa u Filters - AuthorizeRoleAttribute
+- izmjene u JwtAuthenticationAttribute
+- dodati [AuthorizeRole("User")] ispod autentikacije u kontrolerima gdje treba
+
+...
+
+- za ograniciti odredjenim rolama koje parametre mogu vidjeti, potrebno je napraviti DTO model za tu rolu
+	- napravio RoleIsUserDTOs folder i tamo smjestio za User rolu
+	- mapirao shortList za Usera u npr GetAll:
+
+	(List<BoardGame> list, string message) = await Service.GetAllAsync();
+
+                bool roleIsUser = RequestContext.Principal.IsInRole("User");
+                if (roleIsUser)
+                {
+                    var shortList = list.Select(game => new BoardGameDTO
+                    {
+                        Title = game.Title,
+                        Description = game.Description,
+                        AverageRating = game.AverageRating
+                    }).ToList();
+
+                    return Request.CreateResponse(HttpStatusCode.OK, new { Message = message, List = shortList });
+                }
+                return Request.CreateResponse(HttpStatusCode.OK, new { Message = message, List = list });
+            
+	- vraca Id null jer Postman valjda mora vracati Id a nije mapiran, nema veze
+- sad ic po kontrolerima i podesit autentikaciju i autorizaciju i DTOs
+
+- onda kako da UpdatedBy bude po autenticiranom useru, i dodati metodu get sve reviewse za specifican board game
