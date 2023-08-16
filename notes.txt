@@ -75,5 +75,12 @@ AUTHENTICATION
 - instalirati System.IdentityModel.Tokens.Jwt NuGet package
 - AuthenticationController i FindUser metode u servis i repository
 - unutar WebAPI novi folder Filters i novu klasu JwtAuthenticationAttribute
-- novu klasu AuthenticationFailureResult
+
 - kao i ranije sa verzijama, morao izmijeniti webconfig za System.Threading.Tasks.Extensions
+
+- u Postman POST metodu sa username i password u bodyu treba returnat token
+	- onda za autorizaciju unutar Postmana, koju god metodu da saljem, odem u Header i dodam Key "Authorization" i Value "Bearer paste_token", pejstas kobasicu token nakon Bearer ... i trebalo bi returnat normalni npr get all
+
+- za metode koje zelim ogranicit da zahtjevaju ulogiranog usera stavim [JwtAuthentication] iznad HttpGet i sl
+
+- specificne role sad

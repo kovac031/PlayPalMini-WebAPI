@@ -21,12 +21,46 @@ namespace PlayPalMini.WebAPI.Controllers
         {
             Service = service;
         }
+        [HttpPost]
+        [Route("api/authenticate")]
+        public async Task<IHttpActionResult> Authenticate(RegisteredUser user)
+        {
+            (string userRole, string message) = await ValidateUser(user.Username, user.Pass); // prvo trazi usera koristeci metodu od ispod
+
+            if (!string.IsNullOrEmpty(userRole))
+            {
+                string token = GenerateToken(user.Username, userRole); // ako je nasao usera, poziva drugu metodu od ispod da dobije token
+                return Ok(new { Token = token });
+            }
+
+            if (!string.IsNullOrEmpty(message))
+            {
+                return BadRequest(message);
+            }
+
+            return Unauthorized();
+        }
+        private async Task<(string UserRole, string Message)> ValidateUser(string username, string password)
+        {
+            try
+            {
+                (RegisteredUser user, string message) = await Service.FindUserAsync(username, password);
+                if (user != null)
+                    return (user.UserRole, message);
+                else
+                    return (null, message);
+            }
+            catch (Exception x)
+            {
+                return (null, x.Message);
+            }
+        }
         private string GenerateToken(string username, string userRole)
         {
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("54321")); // Please use a strong, unique key
-            var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            SymmetricSecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("123_ThisIsNotAGoodKeyButWhatever_321")); // treba bit nesto dugacko, 12345 ne prolazi
+            SigningCredentials credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-            var token = new JwtSecurityToken(
+            JwtSecurityToken token = new JwtSecurityToken(
                 issuer: "PlayPalMini",
                 audience: "PlayPalMini",
                 claims: new[] { new Claim(ClaimTypes.Name, username), new Claim(ClaimTypes.Role, userRole) },
@@ -35,39 +69,5 @@ namespace PlayPalMini.WebAPI.Controllers
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
-
-        [HttpPost]
-        [Route("api/authenticate")]
-        public async Task<IHttpActionResult> Authenticate(RegisteredUser user)
-        {
-            string userRole = await ValidateUser(user.Username, user.Pass);
-
-            if (!string.IsNullOrEmpty(userRole))
-            {
-                string token = GenerateToken(user.Username, userRole);
-                return Ok(new { Token = token });
-            }
-            return Unauthorized();
-        }
-
-        private async Task<string> ValidateUser(string username, string password)
-        {
-            // Use ADO.NET to fetch UserRole for the user with the given username and password from the RegisteredUser table.
-            // Return UserRole if user is valid, else return null or empty string.
-
-            try
-            {
-                (RegisteredUser user, string message) = await Service.FindUserAsync(username, password);
-                if (user != null)
-                    return user.UserRole;  // return user role directly if found
-                else
-                    return null;
-            }
-            catch (Exception)
-            {
-                return null;
-            }
-        }
-
     }
 }

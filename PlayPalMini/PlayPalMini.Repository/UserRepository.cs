@@ -400,7 +400,7 @@ namespace PlayPalMini.Repository
                 SqlConnection theConnection = new SqlConnection(connectionString);
                 using (theConnection)
                 {
-                    SqlCommand cmd = new SqlCommand("SELECT * FROM RegisteredUser WHERE Username = @username, Pass = @password", theConnection);
+                    SqlCommand cmd = new SqlCommand("SELECT * FROM RegisteredUser WHERE Username = @username AND Pass = @password", theConnection);
                     cmd.Parameters.AddWithValue("@username", username);
                     cmd.Parameters.AddWithValue("@password", password);
 

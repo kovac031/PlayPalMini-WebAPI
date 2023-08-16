@@ -1,6 +1,7 @@
 ﻿using PlayPalMini.Common;
 using PlayPalMini.Model;
 using PlayPalMini.Service.Common;
+using PlayPalMini.WebAPI.Filters;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,6 +20,7 @@ namespace PlayPalMini.WebAPI.Controllers
             Service = service;
         }
         //---------------------------GET ALL-----------------------------
+        [JwtAuthentication]
         [HttpGet]
         [Route("game/getall/")]
         public async Task<HttpResponseMessage> GetAllAsync()

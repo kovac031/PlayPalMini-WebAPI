@@ -10,6 +10,8 @@ using System.Web.Http.Filters;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
+using System.Net;
+using System.Web.Http.Results;
 
 namespace PlayPalMini.WebAPI.Filters
 {
@@ -20,29 +22,36 @@ namespace PlayPalMini.WebAPI.Filters
             HttpRequestMessage request = context.Request;
             AuthenticationHeaderValue authorization = request.Headers.Authorization;
 
-            if (authorization == null || authorization.Scheme != "Bearer" || string.IsNullOrEmpty(authorization.Parameter))
+            if (authorization == null)
             {
-                context.ErrorResult = new AuthenticationFailureResult("Missing JWT Token", request);
+                ErrorResponse(context, "Unauthorized", request); // nemas pristup ili ne saljes token
+                return; 
+            }
+            if (authorization.Scheme != "Bearer")
+            {
+                ErrorResponse(context, "Token value should follow the scheme 'Bearer tokenString'", request);
                 return;
             }
-
-            string jwtToken = authorization.Parameter;
-            if (!IsValidToken(jwtToken))
+            if (string.IsNullOrEmpty(authorization.Parameter))
             {
-                context.ErrorResult = new AuthenticationFailureResult("Invalid JWT Token", request);
+                ErrorResponse(context, "Missing JWT Token", request);
+                return;
+            }
+            string jwtToken = authorization.Parameter;
+            (bool isValid, string message) = IsValidToken(jwtToken); // ako je poslan, a ako je tu onda jest, provjeri je li validan
+            if (!isValid)
+            {
+                //context.ErrorResult = new AuthenticationFailureResult(message, request); // error poruka iz IsValidToken
+                ErrorResponse(context, message, request);
             }
         }
-
-        public async Task ChallengeAsync(HttpAuthenticationChallengeContext context, CancellationToken cancellationToken) { }
-
         public bool AllowMultiple => false;
-
-        private bool IsValidToken(string token)
+        private (bool, string) IsValidToken(string token)
         {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.UTF8.GetBytes("54321");  // same key as used during token creation
+            JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+            byte[] key = Encoding.UTF8.GetBytes("123_ThisIsNotAGoodKeyButWhatever_321"); // mora biti isti kao u kontroleru
 
-            var tokenValidationParameters = new TokenValidationParameters
+            TokenValidationParameters tokenValidationParameters = new TokenValidationParameters
             {
                 ValidateIssuer = true,
                 ValidateAudience = true,
@@ -52,17 +61,36 @@ namespace PlayPalMini.WebAPI.Filters
                 ValidAudience = "PlayPalMini",
                 IssuerSigningKey = new SymmetricSecurityKey(key)
             };
-
             try
             {
                 tokenHandler.ValidateToken(token, tokenValidationParameters, out SecurityToken validatedToken);
-                return true;
+                return (true, null);
+            }
+            catch (SecurityTokenValidationException)
+            {
+                return (false, "Invalid JWT token, expired?.");
+            }
+            catch (ArgumentException)
+            {
+                return (false, "Invalid JWT format, check if token pasted correctly.");
             }
             catch
             {
-                return false;  // token validation failed
+                return (false, "Something went wrong.");
             }
         }
+        private void ErrorResponse(HttpAuthenticationContext context, string errorMessage, HttpRequestMessage request)
+        {
+            HttpResponseMessage response = new HttpResponseMessage(HttpStatusCode.Unauthorized)
+            {
+                RequestMessage = request,
+                Content = new StringContent($"{{ \"error\": \"{errorMessage}\" }}", Encoding.UTF8, "application/json")
+            };
+            context.ErrorResult = new ResponseMessageResult(response);
+        }
 
+        // This method doesn't do anything but can't be removed because of the required interface
+        public async Task ChallengeAsync(HttpAuthenticationChallengeContext context, CancellationToken cancellationToken) { }
     }
+
 }
