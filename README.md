@@ -13,8 +13,8 @@
 # Features, challenges and learning points
 - multilayer architecture - controller, service, repository layer
 - dependency injection, Autofac
-- CRUD
-- tuples in C#
+- full CRUD for board games, reviews and users
+- tuples in C#, neat way to pass custom error/exception messages
 - resolving version conflicts, Web.config
 - direct connection to database, SqlConnection
 - paging, sorting, filtering of lists
@@ -23,6 +23,11 @@
 - working in Postman
 
 # Some screenshots from Postman
+Retrieving a token:
 ![scr1](https://github.com/kovac031/PlayPalMini-WebAPI/blob/main/postman1.png)
+
+List parameters:
 ![scr1](https://github.com/kovac031/PlayPalMini-WebAPI/blob/main/postman2.png)
+
+A custom error message due to accessing a method with the wrong user:
 ![scr1](https://github.com/kovac031/PlayPalMini-WebAPI/blob/main/postman3.png)
