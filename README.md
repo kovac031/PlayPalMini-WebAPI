@@ -21,3 +21,8 @@
 - token based user authentication and role based authorization, System.IdentityModel.Tokens.Jwt
 - retrieving authenticated user data to dynamically map usernamename, role, Id if/where needed (e.g. UpdatedBy)
 - working in Postman
+
+# Some screenshots from Postman
+![scr1](https://github.com/kovac031/PlayPalMini-WebAPI/blob/main/postman1.png)
+![scr1](https://github.com/kovac031/PlayPalMini-WebAPI/blob/main/postman2.png)
+![scr1](https://github.com/kovac031/PlayPalMini-WebAPI/blob/main/postman3.png)
