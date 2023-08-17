@@ -19,7 +19,7 @@
 - direct connection to database, SqlConnection
 - paging, sorting, filtering of lists
 - token based user authentication and role based authorization, System.IdentityModel.Tokens.Jwt
-- retrieving authenticated user data to dynamically map usernamename, role, Id if/where needed (e.g. UpdatedBy)
+- retrieving authenticated user data to dynamically map username, role, Id if/where needed (e.g. UpdatedBy)
 - working in Postman
 
 # Some screenshots from Postman
