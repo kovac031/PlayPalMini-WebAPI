@@ -7,6 +7,7 @@ using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Net.NetworkInformation;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -118,9 +119,9 @@ namespace PlayPalMini.Repository
                     cmd.Parameters.AddWithValue("@id", user.Id = Guid.NewGuid());
                     cmd.Parameters.AddWithValue("@username", user.Username);
                     cmd.Parameters.AddWithValue("@password", user.Pass);
-                    cmd.Parameters.AddWithValue("@role", user.UserRole = "User");
-                    cmd.Parameters.AddWithValue("@createdby", user.CreatedBy = "Postman");
-                    cmd.Parameters.AddWithValue("@updatedby", user.UpdatedBy = "Postman");
+                    cmd.Parameters.AddWithValue("@role", user.UserRole = "User"); // ne mogu dinamicno jer ako implementiram autentikaciju, samo logirani ce imati pristup, sta nema smisla
+                    cmd.Parameters.AddWithValue("@createdby", user.CreatedBy = "Self"); // isto i ovdje, nema veze ajd, uostalom zasto bi registrirani user ili cak administrator pravili nove usere, nema zasto
+                    cmd.Parameters.AddWithValue("@updatedby", user.UpdatedBy = "n/a");
                     cmd.Parameters.AddWithValue("@timecreated", user.DateCreated = DateTime.Now);
                     cmd.Parameters.AddWithValue("@timeupdated", user.DateUpdated = DateTime.Now);
                     // u Postmanu ostaviti samo username i password jer sam ovdje sve ostalo zadao
@@ -145,6 +146,8 @@ namespace PlayPalMini.Repository
         //------------------ EDIT USER ---------------------
         public async Task<(RegisteredUser, string)> EditUserAsync(RegisteredUser user, Guid id)
         {
+            string authenticatedUser = System.Web.HttpContext.Current.User.Identity.Name;
+                        
             try
             {
                 SqlConnection theConnection = new SqlConnection(connectionString);
@@ -160,25 +163,48 @@ namespace PlayPalMini.Repository
                     {
                         reader.Close(); // ne treba nam reader vise
 
-                        SqlCommand cmd = new SqlCommand("UPDATE RegisteredUser SET Username = @username, Pass = @password, UserRole = @role, UpdatedBy = @updatedby, DateUpdated = @timeupdated WHERE Id = @id;", theConnection);
-
-                        cmd.Parameters.AddWithValue("@id", id);
-                        cmd.Parameters.AddWithValue("@username", user.Username);
-                        cmd.Parameters.AddWithValue("@password", user.Pass);
-                        cmd.Parameters.AddWithValue("@role", user.UserRole);
-                        //cmd.Parameters.AddWithValue("@createdby", user.CreatedBy);
-                        cmd.Parameters.AddWithValue("@updatedby", user.UpdatedBy = "EditUserAsync");
-                        //cmd.Parameters.AddWithValue("@timecreated", user.DateCreated);
-                        cmd.Parameters.AddWithValue("@timeupdated", user.DateUpdated = DateTime.Now);
-                        // u Postmanu ostaviti samo sto se treba rucno mijenjati
-                        
-                        if (cmd.ExecuteNonQuery() > 0)
+                        //---- dohvati rolu --------
+                        string role = null;
+                        ClaimsPrincipal principal = System.Web.HttpContext.Current.User as ClaimsPrincipal;
+                        if (principal != null)
                         {
-                            return (user, "User info edited! (ignore null values, it's all good)");
+                            Claim roleClaim = principal.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role);
+                            if (roleClaim != null)
+                            {
+                                role = roleClaim.Value;
+                            }
+                        }
+                        //-----------------------------
+
+                        if (user.Username == authenticatedUser || role == "Administrator")
+                        {
+                            SqlCommand cmd = new SqlCommand("UPDATE RegisteredUser SET Username = @username, Pass = @password, UserRole = @role, UpdatedBy = @updatedby, DateUpdated = @timeupdated WHERE Id = @id;", theConnection);
+
+                            cmd.Parameters.AddWithValue("@id", id);
+                            cmd.Parameters.AddWithValue("@username", user.Username);
+                            cmd.Parameters.AddWithValue("@password", user.Pass);
+
+                            if (role == "Administrator")
+                            { cmd.Parameters.AddWithValue("@role", user.UserRole); }
+                            else
+                            { cmd.Parameters.AddWithValue("@role", user.UserRole = "User"); }
+
+                            cmd.Parameters.AddWithValue("@updatedby", user.UpdatedBy = authenticatedUser);
+                            cmd.Parameters.AddWithValue("@timeupdated", user.DateUpdated = DateTime.Now);
+                            // u Postmanu ostaviti samo sto se treba rucno mijenjati
+
+                            if (cmd.ExecuteNonQuery() > 0)
+                            {
+                                return (user, "User info edited! (ignore null values, it's all good)");
+                            }
+                            else
+                            {
+                                return (null, "Did not edit user.");
+                            }
                         }
                         else
                         {
-                            return (null, "Did not edit user.");
+                            return (null, "You are either editing a user that is not you, or you are not in Administrator role.");
                         }
                     }
                     else

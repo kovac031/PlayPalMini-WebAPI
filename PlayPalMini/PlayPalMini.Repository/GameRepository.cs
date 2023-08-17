@@ -121,6 +121,8 @@ namespace PlayPalMini.Repository
         //------------------ CREATE BOARD GAME ---------------------
         public async Task<(bool, string)> CreateGameAsync(BoardGame game)
         {
+            string authenticatedUser = System.Web.HttpContext.Current.User.Identity.Name;
+
             try
             {
                 SqlConnection theConnection = new SqlConnection(connectionString);
@@ -131,8 +133,8 @@ namespace PlayPalMini.Repository
                     cmd.Parameters.AddWithValue("@id", game.Id = Guid.NewGuid());
                     cmd.Parameters.AddWithValue("@title", game.Title);
                     cmd.Parameters.AddWithValue("@description", game.Description);
-                    cmd.Parameters.AddWithValue("@createdby", game.CreatedBy = "Postman");
-                    cmd.Parameters.AddWithValue("@updatedby", game.UpdatedBy = "Postman");
+                    cmd.Parameters.AddWithValue("@createdby", game.CreatedBy = authenticatedUser);
+                    cmd.Parameters.AddWithValue("@updatedby", game.UpdatedBy = "n/a");
                     cmd.Parameters.AddWithValue("@timecreated", game.DateCreated = DateTime.Now);
                     cmd.Parameters.AddWithValue("@timeupdated", game.DateUpdated = DateTime.Now);
 
@@ -156,6 +158,8 @@ namespace PlayPalMini.Repository
         //------------------ EDIT BOARD GAME ---------------------
         public async Task<(BoardGame, string)> EditGameAsync(BoardGame game, Guid id)
         {
+            string authenticatedUser = System.Web.HttpContext.Current.User.Identity.Name;
+
             try
             {
                 SqlConnection theConnection = new SqlConnection(connectionString);
@@ -176,7 +180,7 @@ namespace PlayPalMini.Repository
                         cmd.Parameters.AddWithValue("@id", id);
                         cmd.Parameters.AddWithValue("@title", game.Title);
                         cmd.Parameters.AddWithValue("@description", game.Description);
-                        cmd.Parameters.AddWithValue("@updatedby", game.UpdatedBy = "EditGameAsync");
+                        cmd.Parameters.AddWithValue("@updatedby", game.UpdatedBy = authenticatedUser);
                         cmd.Parameters.AddWithValue("@timeupdated", game.DateUpdated = DateTime.Now);
 
                         if (cmd.ExecuteNonQuery() > 0)

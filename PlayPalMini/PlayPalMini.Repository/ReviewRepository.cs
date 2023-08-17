@@ -110,6 +110,8 @@ namespace PlayPalMini.Repository
         //------------------ CREATE REVIEW ---------------------
         public async Task<(bool, string)> CreateReviewAsync(Review review)
         {
+            string authenticatedUser = System.Web.HttpContext.Current.User.Identity.Name;
+
             try
             {
                 SqlConnection theConnection = new SqlConnection(connectionString);
@@ -122,8 +124,8 @@ namespace PlayPalMini.Repository
                     cmd.Parameters.AddWithValue("@comment", review.Comment);
                     cmd.Parameters.AddWithValue("@rating", review.Rating);
                     cmd.Parameters.AddWithValue("@BoardGameId", review.BoardGameId);
-                    cmd.Parameters.AddWithValue("@createdby", review.CreatedBy = "Postman");
-                    cmd.Parameters.AddWithValue("@updatedby", review.UpdatedBy = "Postman");
+                    cmd.Parameters.AddWithValue("@createdby", review.CreatedBy = authenticatedUser);
+                    cmd.Parameters.AddWithValue("@updatedby", review.UpdatedBy = "n/a");
                     cmd.Parameters.AddWithValue("@timecreated", review.DateCreated = DateTime.Now);
                     cmd.Parameters.AddWithValue("@timeupdated", review.DateUpdated = DateTime.Now);
                     cmd.Parameters.AddWithValue("@RegisteredUserId", review.RegisteredUserId);
@@ -148,6 +150,8 @@ namespace PlayPalMini.Repository
         //------------------ EDIT REVIEW ---------------------
         public async Task<(Review, string)> EditReviewAsync(Review review, Guid id)
         {
+            string authenticatedUser = System.Web.HttpContext.Current.User.Identity.Name; // dohvaca username za mapiranje UpdatedBy
+
             try
             {
                 SqlConnection theConnection = new SqlConnection(connectionString);
@@ -169,7 +173,7 @@ namespace PlayPalMini.Repository
                         cmd.Parameters.AddWithValue("@title", review.Title);
                         cmd.Parameters.AddWithValue("@comment", review.Comment);
                         cmd.Parameters.AddWithValue("@rating", review.Rating);
-                        cmd.Parameters.AddWithValue("@updatedby", review.UpdatedBy = "EditReviewAsync");
+                        cmd.Parameters.AddWithValue("@updatedby", review.UpdatedBy = authenticatedUser);
                         cmd.Parameters.AddWithValue("@timeupdated", review.DateUpdated = DateTime.Now);
 
                         if (cmd.ExecuteNonQuery() > 0)

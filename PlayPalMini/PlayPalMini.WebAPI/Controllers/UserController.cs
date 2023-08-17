@@ -58,7 +58,7 @@ namespace PlayPalMini.WebAPI.Controllers
             }
         }
         //---------------------------CREATE NEW-----------------------------
-        // bez autentikacije jer kao registracija treba biti omogućena kao, ta logika
+        // bez autentikacije jer kao registracija treba biti omogućena kao, ta logika        
         [HttpPost]
         [Route("user/create")]
         public async Task<HttpResponseMessage> CreateUserAsync(RegisteredUser user)
