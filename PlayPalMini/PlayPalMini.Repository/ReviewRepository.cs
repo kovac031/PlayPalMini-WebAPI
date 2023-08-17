@@ -391,5 +391,164 @@ namespace PlayPalMini.Repository
                 return (null, "Exception");
             }
         }
+        //-------------- GET ALL REVIEWS FOR A SPECIFIC BOARD GAME ---------------------------
+        public async Task<(List<Review>, string)> GetAllReviewsForOneGame(Guid id, SearchParam search, SortParam sort, PageParam page)
+        {
+            try
+            {
+                SqlConnection theConnection = new SqlConnection(connectionString);
+                using (theConnection)
+                {
+                    StringBuilder sb = new StringBuilder();
+                    SqlCommand cmd = new SqlCommand();
+
+                    if (search != null)
+                    {
+                        sb.Append("SELECT * FROM Review WHERE BoardGameId = @id");
+                        cmd.Parameters.AddWithValue("@id", id);
+
+                        //------------ FILTERING -------------------
+                        if (!string.IsNullOrWhiteSpace(search.Title))
+                        {
+                            sb.Append(" AND Title LIKE @title");
+                            cmd.Parameters.AddWithValue("@title", "%" + search.Title + "%");
+                        }
+                        if (!string.IsNullOrWhiteSpace(search.Comment))
+                        {
+                            sb.Append(" AND Comment LIKE @comment");
+                            cmd.Parameters.AddWithValue("@comment", "%" + search.Comment + "%");
+                        }
+                        if (search.Rating != 0) // drukcije zbog int
+                        {
+                            sb.Append(" AND Rating = @rating");
+                            cmd.Parameters.AddWithValue("@rating", search.Rating);
+                        }
+                        if (!string.IsNullOrWhiteSpace(search.CreatedBy))
+                        {
+                            sb.Append(" AND CreatedBy LIKE @CreatedBy");
+                            cmd.Parameters.AddWithValue("@CreatedBy", search.CreatedBy);
+                        }
+                        if (!string.IsNullOrWhiteSpace(search.UpdatedBy))
+                        {
+                            sb.Append(" AND UpdatedBy LIKE @UpdatedBy");
+                            cmd.Parameters.AddWithValue("@UpdatedBy", search.UpdatedBy);
+                        }
+                        if (search.CreatedAfter != null && search.CreatedBefore != null)
+                        {
+                            sb.Append(" AND DateCreated >= @createdafter AND DateCreated <= @createdbefore");
+                            cmd.Parameters.AddWithValue("@createdafter", search.CreatedAfter);
+                            cmd.Parameters.AddWithValue("@createdbefore", search.CreatedBefore);
+                        }
+                        else if (search.CreatedAfter != null)
+                        {
+                            sb.Append(" AND DateCreated >= @createdafter");
+                            cmd.Parameters.AddWithValue("@createdafter", search.CreatedAfter);
+                        }
+                        else if (search.CreatedBefore != null)
+                        {
+                            sb.Append(" AND DateCreated <= @createdbefore");
+                            cmd.Parameters.AddWithValue("@createdbefore", search.CreatedBefore);
+                        }
+                        if (search.UpdatedAfter != null && search.UpdatedBefore != null)
+                        {
+                            sb.Append(" AND DateUpdated >= @updatedafter AND DateUpdated <= @updatedbefore");
+                            cmd.Parameters.AddWithValue("@updatedafter", search.UpdatedAfter);
+                            cmd.Parameters.AddWithValue("@updatedbefore", search.UpdatedBefore);
+                        }
+                        else if (search.UpdatedAfter != null)
+                        {
+                            sb.Append(" AND DateUpdated >= @updatedafter");
+                            cmd.Parameters.AddWithValue("@updatedafter", search.UpdatedAfter);
+                        }
+                        else if (search.UpdatedBefore != null)
+                        {
+                            sb.Append(" AND DateUpdated <= @updatedbefore");
+                            cmd.Parameters.AddWithValue("@updatedbefore", search.UpdatedBefore);
+                        }
+
+                        //---------------- SORTING -----------------
+                        if (sort.OrderByWhat != null && sort.SortDirection != null)
+                        {
+                            sb.Append($" ORDER BY {sort.OrderByWhat} {sort.SortDirection}");
+                        }
+                        else if (sort.OrderByWhat != null)
+                        {
+                            sb.Append($" ORDER BY {sort.OrderByWhat} ASC");
+                        }
+                        else if (sort.SortDirection != null)
+                        {
+                            sb.Append($" ORDER BY DateCreated {sort.SortDirection}");
+                        }
+
+                        //---------------- PAGING ----------------------
+                        if (sort.OrderByWhat == null && sort.SortDirection == null)
+                        {
+                            sb.Append($" ORDER BY DateCreated DESC");
+                        }
+                        if (page.PageNumber != null && page.EntriesPerPage != null)
+                        {
+                            sb.Append(" OFFSET @Offset ROWS FETCH NEXT @EntriesPerPage ROWS ONLY;");
+                            int? pageOffset = (page.PageNumber - 1) * page.EntriesPerPage;
+                            cmd.Parameters.AddWithValue("@Offset", pageOffset);
+                            cmd.Parameters.AddWithValue("@EntriesPerPage", page.EntriesPerPage);
+                        }
+                        else if (page.PageNumber != null)
+                        {
+                            sb.Append(" OFFSET @Offset ROWS FETCH NEXT 5 ROWS ONLY;");
+                            int? pageOffset = (page.PageNumber - 1) * 5;
+                            cmd.Parameters.AddWithValue("@Offset", pageOffset);
+                        }
+                        else if (page.EntriesPerPage != null)
+                        {
+                            sb.Append(" OFFSET 0 ROWS FETCH NEXT @EntriesPerPage ROWS ONLY;");
+                            cmd.Parameters.AddWithValue("@EntriesPerPage", page.EntriesPerPage);
+                        }
+                        //-----------------------------------------------------------
+                    }
+                    else
+                    {
+                        sb.Append("SELECT * FROM Review WHERE BoardGameId = @id");
+                        cmd.Parameters.AddWithValue("@id", id);
+                    };
+                    cmd.Connection = theConnection;
+                    cmd.CommandText = sb.ToString();
+
+                    theConnection.Open();
+                    SqlDataReader reader = await cmd.ExecuteReaderAsync();
+
+                    List<Review> list = new List<Review>();
+
+                    if (reader.HasRows)
+                    {
+                        while (reader.Read())
+                        {
+                            Review review = new Review();
+                            review.Id = reader.GetGuid(0);
+                            review.Title = reader.GetString(1);
+                            review.Comment = reader.GetString(2);
+                            review.Rating = reader.GetInt32(3);
+                            review.BoardGameId = reader.GetGuid(4);
+                            review.CreatedBy = reader.GetString(5);
+                            review.UpdatedBy = reader.GetString(6);
+                            review.DateCreated = reader.GetDateTime(7);
+                            review.DateUpdated = reader.GetDateTime(8);
+                            review.RegisteredUserId = reader.GetGuid(9);
+
+                            list.Add(review);
+                        }
+                        reader.Close();
+                        return (list, "Success");
+                    }
+                    else
+                    {
+                        return (null, "No rows found.");
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                return (null, "Exception");
+            }
+        }
     }
 }

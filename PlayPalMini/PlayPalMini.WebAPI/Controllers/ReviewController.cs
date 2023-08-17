@@ -138,5 +138,22 @@ namespace PlayPalMini.WebAPI.Controllers
                 return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, $"Error for GetAllWithParamsAsync: {x.Message}");
             }
         }
+        //-----------GET ALL REVIEWS FOR SPECIFIC GAME, WITH FILTERING, PAGING, SORTING------------------------
+        [JwtAuthentication]
+        [AuthorizeRole("Administrator", "User")]
+        [HttpGet]
+        [Route("review/params/{id}")]
+        public async Task<HttpResponseMessage> GetAllReviewsForOneGame(Guid id, [FromUri] SearchParam search, [FromUri] SortParam sort, [FromUri] PageParam page)
+        {
+            try
+            {
+                (List<Review> list, string message) = await Service.GetAllReviewsForOneGame(id, search, sort, page);
+                return Request.CreateResponse(HttpStatusCode.OK, new { Message = message, List = list });
+            }
+            catch (Exception x)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, $"Error for GetAllReviewsForOneGame: {x.Message}");
+            }
+        }
     }
 }

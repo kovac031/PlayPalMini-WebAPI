@@ -76,5 +76,15 @@ namespace PlayPalMini.Service
             }
             return (list, message);
         }
+        //------------------
+        public async Task<(List<Review>, string)> GetAllReviewsForOneGame(Guid id, SearchParam search, SortParam sort, PageParam page)
+        {
+            (List<Review> list, string message) = await Repository.GetAllReviewsForOneGame(id, search, sort, page);
+            if (list == null)
+            {
+                throw new Exception(message);
+            }
+            return (list, message);
+        }
     }
 }

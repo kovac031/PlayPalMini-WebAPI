@@ -16,5 +16,6 @@ namespace PlayPalMini.Service.Common
         Task<(Review, string)> EditReviewAsync(Review review, Guid id);
         Task<(bool, string)> DeleteReviewAsync(Guid id);
         Task<(List<Review>, string)> GetAllWithParamsAsync(SearchParam search, SortParam sort, PageParam page);
+        Task<(List<Review>, string)> GetAllReviewsForOneGame(Guid id, SearchParam search, SortParam sort, PageParam page);
     }
 }
