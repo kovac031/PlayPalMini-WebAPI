@@ -31,7 +31,7 @@ namespace PlayPalMini.WebAPI.Controllers
             {
                 (List<BoardGame> list, string message) = await Service.GetAllAsync();
 
-                bool roleIsUser = RequestContext.Principal.IsInRole("User");
+                bool roleIsUser = RequestContext.Principal.IsInRole("User"); // User vidi manje nego Administrator
                 if (roleIsUser)
                 {
                     var shortList = list.Select(game => new BoardGameDTO
@@ -68,7 +68,7 @@ namespace PlayPalMini.WebAPI.Controllers
                     userGame.Description = game.Description;
                     userGame.AverageRating = game.AverageRating;
 
-                    return Request.CreateResponse(HttpStatusCode.OK, new { Message = message, List = userGame });
+                    return Request.CreateResponse(HttpStatusCode.OK, new { Message = message, Game = userGame });
                 }
                 return Request.CreateResponse(HttpStatusCode.OK, new { Message = message, Game = game });
             }
@@ -155,6 +155,19 @@ namespace PlayPalMini.WebAPI.Controllers
             try
             {
                 (List<BoardGame> list, string message) = await Service.GetAllWithParamsAsync(search, sort, page);
+
+                bool roleIsUser = RequestContext.Principal.IsInRole("User"); // User role ne vidi sve
+                if (roleIsUser)
+                {
+                    var shortList = list.Select(game => new BoardGameDTO
+                    {
+                        Title = game.Title,
+                        Description = game.Description,
+                        AverageRating = game.AverageRating
+                    }).ToList();
+
+                    return Request.CreateResponse(HttpStatusCode.OK, new { Message = message, List = shortList });
+                }
                 return Request.CreateResponse(HttpStatusCode.OK, new { Message = message, List = list });
             }
             catch (Exception x)

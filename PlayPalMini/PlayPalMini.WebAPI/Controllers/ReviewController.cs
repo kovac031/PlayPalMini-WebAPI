@@ -1,5 +1,7 @@
 ﻿using PlayPalMini.Common;
 using PlayPalMini.Model;
+using PlayPalMini.Model.Common;
+using PlayPalMini.Model.RoleIsUserDTOs;
 using PlayPalMini.Service.Common;
 using PlayPalMini.WebAPI.Filters;
 using System;
@@ -46,6 +48,17 @@ namespace PlayPalMini.WebAPI.Controllers
             try
             {
                 (Review review, string message) = await Service.GetOneByIdAsync(id);
+
+                bool roleIsUser = RequestContext.Principal.IsInRole("User"); // User vidi manje
+                if (roleIsUser)
+                {
+                    ReviewDTO userReview = new ReviewDTO();
+                    userReview.Title = review.Title;
+                    userReview.Comment = review.Comment;
+                    userReview.Rating = review.Rating;
+
+                    return Request.CreateResponse(HttpStatusCode.OK, new { Message = message, Review = userReview });
+                }
                 return Request.CreateResponse(HttpStatusCode.OK, new { Message = message, Review = review });
             }
             catch (Exception x)
@@ -55,7 +68,7 @@ namespace PlayPalMini.WebAPI.Controllers
         }
         //---------------------------CREATE NEW-----------------------------
         [JwtAuthentication]
-        [AuthorizeRole("User")]
+        [AuthorizeRole("User")] // samo User smije ostavljati review, admin ne smije
         [HttpPost]
         [Route("review/create")]
         public async Task<HttpResponseMessage> CreateReviewAsync(Review review)
@@ -80,7 +93,7 @@ namespace PlayPalMini.WebAPI.Controllers
         }
         //---------------------------EDIT REVIEW-----------------------------
         [JwtAuthentication]
-        [AuthorizeRole("Administrator", "User")]
+        [AuthorizeRole("Administrator", "User")] // svako samo svoje editira, ni admin ne moze tudje
         [HttpPut]
         [Route("review/edit/{id}")]
         public async Task<HttpResponseMessage> EditReviewAsync(Review review, Guid id)
@@ -98,7 +111,7 @@ namespace PlayPalMini.WebAPI.Controllers
         }
         //---------------------------DELETE REVIEW-----------------------------
         [JwtAuthentication]
-        [AuthorizeRole("Administrator", "User")]
+        [AuthorizeRole("Administrator", "User")] // useri brisu samo svoje, admini od svih
         [HttpDelete]
         [Route("review/delete/{id}")]
         public async Task<HttpResponseMessage> DeleteReviewAsync(Guid id)
@@ -123,7 +136,7 @@ namespace PlayPalMini.WebAPI.Controllers
         }
         //--------------------GET ALL WITH FILTERING, PAGING, SORTING------------------------
         [JwtAuthentication]
-        [AuthorizeRole("Administrator", "User")]
+        [AuthorizeRole("Administrator")]
         [HttpGet]
         [Route("review/params/")]
         public async Task<HttpResponseMessage> GetAllWithParamsAsync([FromUri] SearchParam search, [FromUri] SortParam sort, [FromUri] PageParam page)
@@ -148,6 +161,18 @@ namespace PlayPalMini.WebAPI.Controllers
             try
             {
                 (List<Review> list, string message) = await Service.GetAllReviewsForOneGame(id, search, sort, page);
+                bool roleIsUser = RequestContext.Principal.IsInRole("User");
+                if (roleIsUser)
+                {
+                    var shortList = list.Select(review => new ReviewDTO
+                    {
+                        Title = review.Title,
+                        Comment = review.Comment,
+                        Rating = review.Rating
+                    }).ToList();
+
+                    return Request.CreateResponse(HttpStatusCode.OK, new { Message = message, List = shortList });
+                }
                 return Request.CreateResponse(HttpStatusCode.OK, new { Message = message, List = list });
             }
             catch (Exception x)

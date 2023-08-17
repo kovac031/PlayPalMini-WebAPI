@@ -126,7 +126,7 @@ namespace PlayPalMini.WebAPI.Controllers
         }
         //--------------------GET ALL WITH FILTERING, PAGING, SORTING-----------------------
         [JwtAuthentication]
-        [AuthorizeRole("Administrator", "User")]
+        [AuthorizeRole("Administrator")]
         [HttpGet]
         [Route("user/params/")]
         public async Task<HttpResponseMessage> GetAllWithParamsAsync([FromUri]SearchParam search, [FromUri]SortParam sort, [FromUri]PageParam page) // ovo [FromUri] je bitno, tako zna da ce traziti parametre u URL

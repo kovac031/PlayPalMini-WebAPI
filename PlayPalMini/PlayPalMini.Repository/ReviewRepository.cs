@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -117,18 +118,31 @@ namespace PlayPalMini.Repository
                 SqlConnection theConnection = new SqlConnection(connectionString);
                 using (theConnection)
                 {
+                    //---- dohvati userId --------                    
+                    ClaimsPrincipal principal = System.Web.HttpContext.Current.User as ClaimsPrincipal;
+                    var userIdClaimValue = principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                    Guid? userId = null;
+                    if (!string.IsNullOrEmpty(userIdClaimValue))
+                    {
+                        userId = new Guid(userIdClaimValue);
+                    }
+                    //-----------------------------
+
                     SqlCommand cmd = new SqlCommand("INSERT INTO Review VALUES (@id, @title, @comment, @rating, @BoardGameId, @createdby, @updatedby, @timecreated, @timeupdated, @RegisteredUserId);", theConnection);
 
                     cmd.Parameters.AddWithValue("@id", review.Id = Guid.NewGuid());
                     cmd.Parameters.AddWithValue("@title", review.Title);
                     cmd.Parameters.AddWithValue("@comment", review.Comment);
                     cmd.Parameters.AddWithValue("@rating", review.Rating);
-                    cmd.Parameters.AddWithValue("@BoardGameId", review.BoardGameId);
+                    cmd.Parameters.AddWithValue("@BoardGameId", review.BoardGameId); // u Postmanu rucno kopirat value za ovo u body da se zna za koju igru se ostavlja review
                     cmd.Parameters.AddWithValue("@createdby", review.CreatedBy = authenticatedUser);
                     cmd.Parameters.AddWithValue("@updatedby", review.UpdatedBy = "n/a");
                     cmd.Parameters.AddWithValue("@timecreated", review.DateCreated = DateTime.Now);
                     cmd.Parameters.AddWithValue("@timeupdated", review.DateUpdated = DateTime.Now);
-                    cmd.Parameters.AddWithValue("@RegisteredUserId", review.RegisteredUserId);
+                    if (userId.HasValue)
+                    { cmd.Parameters.AddWithValue("@RegisteredUserId", review.RegisteredUserId = userId.Value); } // u Postmanu ako si logiran automatski ce staviti Id, ako nisi moras rucno kopirat, a do cega ne moze doci zbog zabrane u kontroleru
+                    else
+                    { cmd.Parameters.AddWithValue("@RegisteredUserId", review.RegisteredUserId); }
 
                     theConnection.Open();
 
@@ -157,6 +171,7 @@ namespace PlayPalMini.Repository
                 SqlConnection theConnection = new SqlConnection(connectionString);
                 using (theConnection)
                 {
+                    // prvo dohvati review po zadanom id
                     SqlCommand cmdGet = new SqlCommand("SELECT * FROM Review WHERE Id = @id", theConnection);
                     cmdGet.Parameters.AddWithValue("@id", id);
                     theConnection.Open();
@@ -167,23 +182,43 @@ namespace PlayPalMini.Repository
                     {
                         reader.Close();
 
-                        SqlCommand cmd = new SqlCommand("UPDATE Review SET Title = @title, Comment = @comment, Rating = @rating, UpdatedBy = @updatedby, DateUpdated = @timeupdated WHERE Id = @id;", theConnection);
+                        // ako review postoji, dohvati CreatedBy da mogu usporediti je li logirani user i autor tog reviewa
+                        SqlCommand cmdCheck = new SqlCommand("SELECT CreatedBy FROM Review WHERE Id = @id", theConnection);
+                        cmdCheck.Parameters.AddWithValue("@id", id);
 
-                        cmd.Parameters.AddWithValue("@id", id);
-                        cmd.Parameters.AddWithValue("@title", review.Title);
-                        cmd.Parameters.AddWithValue("@comment", review.Comment);
-                        cmd.Parameters.AddWithValue("@rating", review.Rating);
-                        cmd.Parameters.AddWithValue("@updatedby", review.UpdatedBy = authenticatedUser);
-                        cmd.Parameters.AddWithValue("@timeupdated", review.DateUpdated = DateTime.Now);
-
-                        if (cmd.ExecuteNonQuery() > 0)
+                        object result = await cmdCheck.ExecuteScalarAsync();
+                        if (result != null)
                         {
-                            return (review, "Review info edited! (ignore null values, it's all good)");
+                            string createdBy = result.ToString();
+
+                            if (createdBy != authenticatedUser) // ako nije autor
+                            {
+                                return (null, "Unauthorized: Only the creator of the review can edit it.");
+                            }
+
+                            // ako je logirani user i autor, slobodno editiraj
+                            SqlCommand cmd = new SqlCommand("UPDATE Review SET Title = @title, Comment = @comment, Rating = @rating, UpdatedBy = @updatedby, DateUpdated = @timeupdated WHERE Id = @id;", theConnection);
+
+                            cmd.Parameters.AddWithValue("@id", id);
+                            cmd.Parameters.AddWithValue("@title", review.Title);
+                            cmd.Parameters.AddWithValue("@comment", review.Comment);
+                            cmd.Parameters.AddWithValue("@rating", review.Rating);
+                            cmd.Parameters.AddWithValue("@updatedby", review.UpdatedBy = authenticatedUser);
+                            cmd.Parameters.AddWithValue("@timeupdated", review.DateUpdated = DateTime.Now);
+
+                            if (cmd.ExecuteNonQuery() > 0)
+                            {
+                                return (review, "Review info edited! (ignore null values, it's all good)");
+                            }
+                            else
+                            {
+                                return (null, "Did not edit review.");
+                            }
                         }
                         else
                         {
-                            return (null, "Did not edit review.");
-                        }
+                            return (null, "Did not find a CreatedBy.");
+                        }                        
                     }
                     else
                     {
@@ -199,11 +234,26 @@ namespace PlayPalMini.Repository
         //-------------- DELETE REVIEW BY ID ---------------------------
         public async Task<(bool, string)> DeleteReviewAsync(Guid id)
         {
+            string authenticatedUser = System.Web.HttpContext.Current.User.Identity.Name; // dohvaca username za mapiranje UpdatedBy
+
             try
             {
                 SqlConnection theConnection = new SqlConnection(connectionString);
                 using (theConnection)
                 {
+                    //---- dohvati rolu --------
+                    string role = null;
+                    ClaimsPrincipal principal = System.Web.HttpContext.Current.User as ClaimsPrincipal;
+                    if (principal != null)
+                    {
+                        Claim roleClaim = principal.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role);
+                        if (roleClaim != null)
+                        {
+                            role = roleClaim.Value;
+                        }
+                    }
+                    //-----------------------------
+
                     SqlCommand cmdRead = new SqlCommand("SELECT * FROM Review WHERE Id = @id", theConnection);
                     cmdRead.Parameters.AddWithValue("@id", id);
                     theConnection.Open();
@@ -214,18 +264,32 @@ namespace PlayPalMini.Repository
                     {
                         reader.Close();
 
-                        SqlCommand cmd = new SqlCommand("DELETE FROM Review WHERE Id = @id;", theConnection);
-                        cmd.Parameters.AddWithValue("@id", id);
+                        SqlCommand cmdCheck = new SqlCommand("SELECT CreatedBy FROM Review WHERE Id = @id", theConnection);
+                        cmdCheck.Parameters.AddWithValue("@id", id);
 
-                        int affectedRows = await cmd.ExecuteNonQueryAsync();
-                        if (affectedRows > 0)
+                        object result = await cmdCheck.ExecuteScalarAsync();
+                        if (result != null)
                         {
-                            return (true, "The review has been deleted!");
+                            string createdBy = result.ToString();
+
+                            if ((createdBy == authenticatedUser) || (role == "Administrator"))
+                            {
+                                SqlCommand cmd = new SqlCommand("DELETE FROM Review WHERE Id = @id;", theConnection);
+                                cmd.Parameters.AddWithValue("@id", id);
+
+                                int affectedRows = await cmd.ExecuteNonQueryAsync();
+                                if (affectedRows > 0)
+                                {
+                                    return (true, "The review has been deleted!");
+                                }
+                                else
+                                {
+                                    return (false, "Failed to delete this review.");
+                                }
+                            }
+                            return (false, "Unauthorized: Only the creator of the review or an administrator can delete it.");
                         }
-                        else
-                        {
-                            return (false, "Failed to delete this review.");
-                        }
+                        return (false, "Could not find a CreatedBy.");
                     }
                     else
                     {

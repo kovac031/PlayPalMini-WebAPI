@@ -92,8 +92,9 @@ AUTORIZACIJA
 ...
 
 - za ograniciti odredjenim rolama koje parametre mogu vidjeti, potrebno je napraviti DTO model za tu rolu
+- samo za Review i BoardGame jer vidit sve usere smije samo admin tak ionak
 	- napravio RoleIsUserDTOs folder i tamo smjestio za User rolu
-	- mapirao shortList za Usera u npr GetAll:
+	- u kontroleru mapirao shortList za Usera u npr GetAll:
 
 	(List<BoardGame> list, string message) = await Service.GetAllAsync();
 
@@ -114,4 +115,30 @@ AUTORIZACIJA
 	- vraca Id null jer Postman valjda mora vracati Id a nije mapiran, nema veze
 - sad ic po kontrolerima i podesit autentikaciju i autorizaciju i DTOs
 
-- onda kako da UpdatedBy bude po autenticiranom useru, i dodati metodu get sve reviewse za specifican board game
+- za mapiranje trenutno logiranog usera za UpdatedBy, CreatedBy i sl
+	- dodati liniju u metodu u repositoriju: string authenticatedUser = System.Web.HttpContext.Current.User.Identity.Name;
+	- repository ga ne vidi, tako da add reference > Assemblies > System.Web
+
+- za dohvacanje role u repositorij:
+
+			string role = null;
+                        ClaimsPrincipal principal = System.Web.HttpContext.Current.User as ClaimsPrincipal;
+                        if (principal != null)
+                        {
+                            Claim roleClaim = principal.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role);
+                            if (roleClaim != null)
+                            {
+                                role = roleClaim.Value;
+                            }
+                        }
+
+- ako treba provjeriti sta sve bude spremljeno u tokenu, ovdje pogledati https://jwt.io/
+
+...
+
+POSTMAN
+
+- kad nema parametara ide samo get all
+- kada ima parametara ide Params tab
+- kad treba post/put ide u body - raw - json
+- kad treba token ide u header - authorization - Bearer (token)

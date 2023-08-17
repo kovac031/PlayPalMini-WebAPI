@@ -25,11 +25,11 @@ namespace PlayPalMini.WebAPI.Controllers
         [Route("api/authenticate")]
         public async Task<IHttpActionResult> Authenticate(RegisteredUser user)
         {
-            (string userRole, string message) = await ValidateUser(user.Username, user.Pass); // prvo trazi usera koristeci metodu od ispod
+            (string userRole, string message, Guid userId) = await ValidateUser(user.Username, user.Pass); // prvo trazi usera koristeci metodu od ispod
 
             if (!string.IsNullOrEmpty(userRole))
             {
-                string token = GenerateToken(user.Username, userRole); // ako je nasao usera, poziva drugu metodu od ispod da dobije token
+                string token = GenerateToken(user.Username, userRole, userId); // ako je nasao usera, poziva drugu metodu od ispod da dobije token
                 return Ok(new { Token = token });
             }
 
@@ -40,22 +40,22 @@ namespace PlayPalMini.WebAPI.Controllers
 
             return Unauthorized();
         }
-        private async Task<(string UserRole, string Message)> ValidateUser(string username, string password)
+        private async Task<(string UserRole, string Message, Guid UserId)> ValidateUser(string username, string password)
         {
             try
             {
                 (RegisteredUser user, string message) = await Service.FindUserAsync(username, password);
                 if (user != null)
-                    return (user.UserRole, message);
+                    return (user.UserRole, message, user.Id);
                 else
-                    return (null, message);
+                    return (null, message, Guid.Empty);
             }
             catch (Exception x)
             {
-                return (null, x.Message);
+                return (null, x.Message, Guid.Empty);
             }
         }
-        private string GenerateToken(string username, string userRole)
+        private string GenerateToken(string username, string userRole, Guid userId)
         {
             SymmetricSecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("123_ThisIsNotAGoodKeyButWhatever_321")); // treba bit nesto dugacko, 12345 ne prolazi
             SigningCredentials credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -63,7 +63,12 @@ namespace PlayPalMini.WebAPI.Controllers
             JwtSecurityToken token = new JwtSecurityToken(
                 issuer: "PlayPalMini",
                 audience: "PlayPalMini",
-                claims: new[] { new Claim(ClaimTypes.Name, username), new Claim(ClaimTypes.Role, userRole) },
+                claims: new[] // ovdje se dodaje sta ce se pamtit pri autentikaciji (username, rola i Id)
+                { 
+                    new Claim(ClaimTypes.Name, username), 
+                    new Claim(ClaimTypes.Role, userRole),
+                    new Claim(ClaimTypes.NameIdentifier, userId.ToString())
+                },
                 expires: DateTime.Now.AddHours(2),
                 signingCredentials: credentials);
 

@@ -133,7 +133,7 @@ namespace PlayPalMini.Repository
                     cmd.Parameters.AddWithValue("@id", game.Id = Guid.NewGuid());
                     cmd.Parameters.AddWithValue("@title", game.Title);
                     cmd.Parameters.AddWithValue("@description", game.Description);
-                    cmd.Parameters.AddWithValue("@createdby", game.CreatedBy = authenticatedUser);
+                    cmd.Parameters.AddWithValue("@createdby", game.CreatedBy = authenticatedUser); // dovoljno samo pokupiti ime, jer je u kontroleru ograniceno na samo Administrator vec
                     cmd.Parameters.AddWithValue("@updatedby", game.UpdatedBy = "n/a");
                     cmd.Parameters.AddWithValue("@timecreated", game.DateCreated = DateTime.Now);
                     cmd.Parameters.AddWithValue("@timeupdated", game.DateUpdated = DateTime.Now);
