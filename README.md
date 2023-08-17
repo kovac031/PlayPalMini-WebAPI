@@ -27,7 +27,7 @@ Retrieving a token:
 ![scr1](https://github.com/kovac031/PlayPalMini-WebAPI/blob/main/postman1.png)
 
 List parameters:
-![scr1](https://github.com/kovac031/PlayPalMini-WebAPI/blob/main/postman2.png)
+![scr2](https://github.com/kovac031/PlayPalMini-WebAPI/blob/main/postman2.png)
 
 A custom error message due to accessing a method with the wrong user:
-![scr1](https://github.com/kovac031/PlayPalMini-WebAPI/blob/main/postman3.png)
+![scr3](https://github.com/kovac031/PlayPalMini-WebAPI/blob/main/postman3.png)
